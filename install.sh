@@ -20,7 +20,7 @@ function backup() {
 
 function install() {
     mkdir -p "${DOTFILES_AT_HOME_DIR}"
-    cp -r "${DOTFILES_AT_THIS_SCRIPT_DIR}/*" "${DOTFILES_AT_HOME_DIR}/"
+    rsync -ahv "${DOTFILES_AT_THIS_SCRIPT_DIR}/*" "${DOTFILES_AT_HOME_DIR}/"
 
     for dot_file in $(find "${DOTFILES_AT_HOME_DIR}" -maxdepth 1 -not -name "${DOTFILES_AT_HOME_DIR}"); do
         backup "${dot_file}"
