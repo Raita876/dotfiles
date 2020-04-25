@@ -13,7 +13,7 @@ function backup() {
     bk="${target}.bk.$(date +%Y%m%d%H%M%S)"
 
     if [ -e "${target}" ]; then
-        cp "${target}" "${bk}"
+        cp -r "${target}" "${bk}"
     fi
 }
 
