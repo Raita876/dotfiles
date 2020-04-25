@@ -4,7 +4,7 @@ set -eu
 readonly THIS_SCRIPT_DIR=$(cd "$(dirname $0)"; pwd)
 readonly DOTFILES_AT_THIS_SCRIPT_DIR="${THIS_SCRIPT_DIR}/dotfiles"
 readonly DOTFILES_AT_HOME_DIR="${HOME}/.dotfiles"
-readonly DOTFILES_BK_AT_HOME_DIR="${DOTFILES_AT_HOME_DIR}/backup"
+readonly DOTFILES_BK_AT_HOME_DIR="${HOME}/.dotfiles_bk"
 readonly BASHRC="${HOME}/.bashrc"
 
 
