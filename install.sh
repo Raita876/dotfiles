@@ -3,13 +3,15 @@ set -eu
 
 readonly THIS_SCRIPT_DIR=$(cd "$(dirname $0)"; pwd)
 readonly DOTFILES_AT_THIS_SCRIPT_DIR="${THIS_SCRIPT_DIR}/dotfiles"
-readonly DOTFILES_AT_HOME_DIR="${HOME}/dotfiles"
+readonly DOTFILES_AT_HOME_DIR="${HOME}/.dotfiles"
 readonly DOTFILES_BK_AT_HOME_DIR="${DOTFILES_AT_HOME_DIR}/backup"
 readonly BASHRC="${HOME}/.bashrc"
 
 
 function backup() {
     local target="$1"
+
+    mkdir -p "${DOTFILES_BK_AT_HOME_DIR}"
 
     local bk
     bk="${DOTFILES_BK_AT_HOME_DIR}/$(basename "${target}").bk.$(date +%Y%m%d%H%M%S)"
