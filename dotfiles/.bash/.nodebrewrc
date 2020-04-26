@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 
 NODEBREW_HOME="/usr/local/var/nodebrew/current"
 export NODEBREW_HOME

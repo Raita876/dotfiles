@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 
 if [ -x "$(which go)" ]; then
     export GOPATH="${HOME}/golang"
