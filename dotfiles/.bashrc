@@ -8,9 +8,9 @@ alias rm='rm -i'
 
 if type exa &> /dev/null; then
     alias ls='exa'
-    alias ll='exa -lhF --time-style=long-iso'
+    alias ll='exa -lahF --time-style=long-iso'
 else
-    alias ll='ls -lhF'
+    alias ll='ls -lahF'
 fi
 
 
