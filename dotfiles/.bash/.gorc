@@ -1,5 +1,8 @@
+#!/bin/bash
+set -eu
+
 if [ -x "$(which go)" ]; then
-    export GOPATH=$HOME/golang
-    export PATH=$PATH:$GOPATH/bin
-    export GO111MODULE=on
+    export GOPATH="${HOME}/golang"
+    export PATH="${PATH}:${GOPATH}/bin"
+    export GO111MODULE="on"
 fi
