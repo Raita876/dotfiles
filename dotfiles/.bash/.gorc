@@ -2,6 +2,6 @@
 
 if [ -x "$(which go)" ]; then
     export GOPATH="${HOME}/golang"
-    export PATH="${PATH}:${GOPATH}/bin:/usr/local/go/bin/"
+    export PATH="${PATH}:${GOPATH}/bin:/usr/local/go/bin"
     export GO111MODULE="on"
 fi
