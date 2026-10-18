@@ -4,6 +4,7 @@
     ./git.nix
     ./direnv.nix
     ./dotfiles.nix
+    ./programs/claude-code.nix
   ];
 
   home.stateVersion = "26.11";

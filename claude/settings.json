@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "defaultMode": "auto"
-  },
-  "enabledPlugins": {},
-  "extraKnownMarketplaces": {},
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "dark"
-}

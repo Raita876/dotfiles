@@ -12,7 +12,8 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `flake.nix` | inputs と `darwinConfigurations."raita-mba"` |
 | `nix/modules/darwin/` | macOS のシステム設定 (`system.nix`)、Homebrew (`homebrew.nix`) |
 | `nix/modules/home/` | home-manager: CLI ツール (`packages.nix`)、git、direnv、設定ファイルの symlink (`dotfiles.nix`) |
-| `zsh/`, `ghostty/`, `cmux/`, `vscode/`, `claude/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `nix/modules/home/programs/claude-code.nix` | Claude Code 本体と設定 (settings.json は switch 時にマージ) |
+| `zsh/`, `ghostty/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
 | リポジトリ | リンク先 |
@@ -22,8 +23,10 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `ghostty/` | `~/.config/ghostty` |
 | `cmux/` | `~/.config/cmux` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` |
-| `claude/settings.json` | `~/.claude/settings.json` |
-| `claude/skills/<name>` | `~/.claude/skills/<name>` |
+| `agents/AGENTS.md` | `~/.claude/CLAUDE.md` |
+| `agents/shared/` | `~/.claude/shared` |
+| `agents/skills/<name>/` | `~/.claude/skills/<name>` |
+| `claude/{commands,agents,output-styles}/` | `~/.claude/{commands,agents,output-styles}` |
 
 ## 新しい Mac でのセットアップ
 

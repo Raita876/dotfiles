@@ -12,7 +12,6 @@
     go-task
     awscli2
     terraform
-    claude-code
 
     # Nix の言語サーバーとフォーマッタ (VS Code の nix-ide から使う)
     nixd
