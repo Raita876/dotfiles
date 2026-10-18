@@ -1,4 +1,5 @@
 {
+  pkgs,
   hostname,
   username,
   homedir,
@@ -12,15 +13,20 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-    trusted-users = [
-      "root"
-      username
-    ];
+  nix = {
+    # 既定の pkgs.nix (stable 系) はインストール済みの 2.35 より古いので、switch で Nix をダウングレードしないよう latest 系を使う
+    package = pkgs.nixVersions.latest;
+
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      trusted-users = [
+        "root"
+        username
+      ];
+    };
   };
 
   networking = {

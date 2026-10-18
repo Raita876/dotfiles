@@ -156,6 +156,7 @@ dotfiles/
 **nix/modules/darwin/default.nix**
 - `nix.settings.experimental-features = [ "nix-command" "flakes" ]`, `trusted-users = [ "root" "raita" ]`
 - `system.primaryUser = "raita"`, `system.stateVersion = 6`
+- `nix.package = pkgs.nixVersions.latest` (既定の `pkgs.nix` は 2.34 系で、インストール済みの 2.35.3 からダウングレードになるため)
 - `networking.{hostName,localHostName,computerName} = "raita-mba"`
 - `programs.zsh.enable = true`
 - `nixpkgs.config.allowUnfree = true`
