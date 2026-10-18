@@ -214,6 +214,7 @@ homebrew = {
   casks = [
     "ghostty"
     "google-chrome" "discord" "notion" "visual-studio-code" "cmux"
+    "clipy" "google-japanese-ime" "zoom"
   ];
 };
 ```
@@ -310,8 +311,12 @@ devShells.default = pkgs.mkShell {
 
 ```sh
 # brew 管理外の GUI アプリを Homebrew に引き取らせる (再インストールせずに管理下へ入れる)
-brew install --cask --adopt google-chrome discord notion visual-studio-code cmux
+brew install --cask --adopt google-chrome discord notion visual-studio-code cmux clipy
+# Google 日本語入力と zoom は .pkg 形式の cask なので --adopt は使えない。インストーラを上書きで実行する (sudo のパスワードを聞かれる)
+brew install --cask google-japanese-ime zoom
 ```
+
+- App Management (アプリ管理) の許可が無いと `--adopt` が `Operation not permitted` で失敗する。システム設定 → プライバシーとセキュリティ → アプリ管理 で、実行するターミナル (cmux など) を許可して再起動してから実行する
 
 今の設定ファイルをリポジトリへコピーする (ファイル作成時に実施。symlink 先が空にならないように、初回適用より前に済ませる):
 
@@ -399,7 +404,7 @@ nix flake update && sudo darwin-rebuild switch --flake .     # パッケージ�
 |---|---|---|
 | Nix へ移す | eza, starship, gh (programs.gh), jq, tree, gitleaks, git-secrets, go-task, awscli, terraform, go | `home.packages` へ。cleanup で brew 版は削除 |
 | brew に残す | docker, docker-buildx, docker-compose, docker-completion, colima | `homebrew.brews` で宣言 |
-| cask | ghostty, google-chrome, discord, notion, visual-studio-code, cmux | `homebrew.casks` で宣言 |
+| cask | ghostty, google-chrome, discord, notion, visual-studio-code, cmux, clipy, google-japanese-ime, zoom | `homebrew.casks` で宣言 |
 | 削除する | node, node@20, nodenv | Node はデフォルト `nodejs_24` + devShell に置き換え |
 | 削除する | uv, python@3.12 | Python はグローバルに入れない。必要なプロジェクトの devShell で用意する (macOS 標準の `/usr/bin/python3` は残る) |
 | 削除する | sqlc, golangci-lint, gotests | Go の開発ツール。必要になったらプロジェクトの devShell に入れる |

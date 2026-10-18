@@ -29,6 +29,9 @@
       "notion"
       "visual-studio-code"
       "cmux"
+      "clipy"
+      "google-japanese-ime"
+      "zoom"
     ];
   };
 }
