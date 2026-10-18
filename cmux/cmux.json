@@ -39,7 +39,7 @@
     "bindings": {
       // ⌘[ ⌘] ⌘^[ ⌘^] (ワークスペースの切替・並び替え) と ⌥⌘[ ⌥⌘] (ブラウザの戻る・進む) はここに書かない。
       // JIS キーボードではファイル経由の "[" "]" 指定が二重に一致して誤動作するため (upstream issue #3061)、
-      // Settings > Keyboard Shortcuts から設定している (UserDefaults の com.cmuxterm.app に保存される)
+      // UserDefaults の com.cmuxterm.app に直接登録している (scripts/cmux/cmux-shortcuts.sh)
       "closeWorkspace": "cmd+ctrl+n",
       "splitDown": "cmd+ctrl+d",
       "focusLeft": "cmd+←",
