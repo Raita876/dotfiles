@@ -105,3 +105,17 @@ direnv allow                                   # 以後 cd するだけで読み
 - zshrc などはこのリポジトリへの symlink なので、読み込む側の Mac にもこのリポジトリを `dotfiles.dir` (既定は `~/Repository/dotfiles`) に clone しておく
 - 設定できる値は `nix/modules/darwin/options.nix` を参照
 
+### 端末固有のシェル設定と秘密情報
+
+`zsh/zshrc` は最後に `~/.zshrc.local` を読み込む。職場のツールの初期化 (gcloud の補完、nodenv など) はそこに書く。
+API キーなどの秘密情報は、このリポジトリにも職場用のリポジトリにも入れず、さらに別のファイルに分ける。
+
+```sh
+# ~/.zshrc.local (どのリポジトリにも入れない)
+[[ -f ~/.zshenv.secrets ]] && source ~/.zshenv.secrets
+# 以下、職場のツールの初期化など
+
+# ~/.zshenv.secrets (chmod 600 にする)
+export SOME_API_KEY=...
+```
+

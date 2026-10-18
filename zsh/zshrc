@@ -17,5 +17,8 @@ alias ls=eza
 # direnv（プロジェクトの devShell を cd で自動読み込み）
 eval "$(direnv hook zsh)"
 
-# starship（プロンプトを書き換えるので最後に置く）
+# starship（プロンプトを書き換えるので、共通設定の最後に置く）
 eval "$(starship init zsh)"
+
+# 端末固有の設定 (職場のツールなど)。リポジトリには入れず、各 Mac の ~/.zshrc.local に書く
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
