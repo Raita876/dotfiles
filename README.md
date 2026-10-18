@@ -2,9 +2,6 @@
 
 raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する。
 
-- 設計とその理由: [docs/plan.md](docs/plan.md)
-- 他の人の dotfiles の調査: [docs/survey.md](docs/survey.md)
-
 ## 構成
 
 | パス | 内容 |
