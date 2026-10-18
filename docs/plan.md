@@ -122,6 +122,9 @@ dotfiles/
 ├── vscode/
 │   ├── settings.json             # 今の VS Code 設定を移植
 │   └── extensions.txt            # 拡張機能の一覧 (code --list-extensions の出力)
+├── claude/
+│   ├── settings.json             # 今の Claude Code 設定を移植
+│   └── skills/                   # 自作スキル (fu-calculation, fu-calculation-quiz)
 └── templates/
     └── node/
         └── flake.nix             # プロジェクト用 devShell の雛形 (Node)
@@ -233,12 +236,19 @@ homebrew = {
 | `ghostty/` | `~/.config/ghostty` | **ディレクトリ** |
 | `cmux/` | `~/.config/cmux` | **ディレクトリ** |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | ファイル |
+| `claude/settings.json` | `~/.claude/settings.json` | ファイル |
+| `claude/skills/fu-calculation` | `~/.claude/skills/fu-calculation` | ディレクトリ |
+| `claude/skills/fu-calculation-quiz` | `~/.claude/skills/fu-calculation-quiz` | ディレクトリ |
 
 - ghostty / cmux を **ディレクトリごと** リンクする理由: アプリが設定を保存するとき「一時ファイルに書いてから置き換える」方式だと、ファイル単位の symlink は普通のファイルに置き換わってリンクが切れる。ディレクトリごとリンクすれば、置き換えもリポジトリ内で起きるので切れない
   - cmux は設定変更時に `cmux.json.<日時>.bak` を作るため、`.gitignore` に `cmux/*.bak` を追加する
 - VS Code は `User/` 以下に履歴やキャッシュ (`globalStorage`, `History`, `workspaceStorage`) があるため、ディレクトリではなく `settings.json` だけをリンクする (VS Code は symlink 先をそのまま書き換えるので問題ない)
 - Ghostty は今 `~/Library/Application Support/com.mitchellh.ghostty/config` を使っているが、`~/.config/ghostty/config` に移す (他の設定と `~/.config` 以下に揃えるため。Ghostty は両方を読む)
 - 各アプリの画面から設定を変えると、リポジトリのファイルが直接書き換わる。変更は `git diff` で確認できる
+- Claude Code: `~/.claude` には履歴・セッション・会話の記録 (`projects/`) もあるため、ディレクトリごとではなく自分で管理するものだけをリンクする
+  - 管理しない: `skills/synced/` (claude.ai から同期)、`projects/` (会話とメモリ)、`history.jsonl` などの履歴・キャッシュ、`~/.claude.json` (ログイン状態などアカウント情報を含む)
+  - `settings.json` は `/config` やプラグイン操作で Claude Code 自身が書き換える。ryoppippi さんのように Nix で生成すると書き込み禁止になり、これらの操作が効かなくなるため、生成ではなくリンクにする
+  - 書き換え方によってはリンクが普通のファイルに置き換わる可能性があるため、適用後に `/config` で設定を 1 つ変えて、リンクが残るか確認する (手順 2)
 
 **vscode/extensions.txt**
 - 拡張機能 (現在 21 個) の一覧。Nix では管理せず、一覧ファイルとして持つ
@@ -282,6 +292,7 @@ cp ~/.zshrc zsh/zshrc && cp ~/.zprofile zsh/zprofile          # その後、上�
 cp ~/Library/Application\ Support/com.mitchellh.ghostty/config ghostty/config
 cp ~/.config/cmux/cmux.json cmux/
 cp ~/Library/Application\ Support/Code/User/settings.json vscode/
+cp ~/.claude/settings.json claude/ && cp -R ~/.claude/skills/fu-calculation ~/.claude/skills/fu-calculation-quiz claude/skills/
 code --list-extensions > vscode/extensions.txt
 ```
 
@@ -298,7 +309,7 @@ sudo nix run nix-darwin -- switch --flake .#raita-mba
 初回適用で起きること:
 - ホスト名が `raita-mba` に変わる
 - `/etc/nix/nix.conf`, `/etc/zshrc` などが nix-darwin 管理になる (既存ファイルは `*.before-nix-darwin` に退避される)
-- `~/.zshrc`, `~/.zprofile`, `~/.gitconfig`, `~/.config/cmux`, VS Code の `settings.json` は home-manager 管理の symlink に置き換わる (既存は `*.before-nix` に退避)
+- `~/.zshrc`, `~/.zprofile`, `~/.gitconfig`, `~/.config/cmux`, VS Code の `settings.json`, `~/.claude/settings.json`, `~/.claude/skills/fu-calculation*` は home-manager 管理の symlink に置き換わる (既存は `*.before-nix` に退避)
 - 適用後、古い Ghostty 設定 `~/Library/Application Support/com.mitchellh.ghostty/config` を削除する (残すと `~/.config/ghostty/config` と二重に読まれる)
 - `~/.config/cmux/*.bak` の古いバックアップは、退避先 (`~/.config/cmux.before-nix`) ごと確認して削除してよい
 - `~/.config/nix/nix.conf` は `/etc/nix/nix.conf` 側と重複するので、適用後に削除してよい
@@ -312,6 +323,14 @@ which jq node go claude starship   # /etc/profiles/per-user/raita/bin/... にな
 node --version                     # v24.21.0
 go version                         # go1.27.2
 claude --version                   # 2.1.300 (Claude Code)
+```
+
+Claude Code の設定がリンクのまま保たれるか確認する:
+
+```sh
+ls -la ~/.claude/settings.json   # dotfiles/claude/settings.json へのリンクになっているか
+# Claude Code で /config から設定を 1 つ変えて元に戻したあと、もう一度確認する
+ls -la ~/.claude/settings.json   # 普通のファイルに変わっていたら、ファイルごとのリンクは使えない
 ```
 
 ### 3. Homebrew の整理

@@ -12,7 +12,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `flake.nix` | inputs と `darwinConfigurations."raita-mba"` |
 | `nix/modules/darwin/` | macOS のシステム設定 (`system.nix`)、Homebrew (`homebrew.nix`) |
 | `nix/modules/home/` | home-manager: CLI ツール (`packages.nix`)、git、direnv、設定ファイルの symlink (`dotfiles.nix`) |
-| `zsh/`, `ghostty/`, `cmux/`, `vscode/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `zsh/`, `ghostty/`, `cmux/`, `vscode/`, `claude/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
 | リポジトリ | リンク先 |
@@ -22,6 +22,8 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `ghostty/` | `~/.config/ghostty` |
 | `cmux/` | `~/.config/cmux` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` |
+| `claude/settings.json` | `~/.claude/settings.json` |
+| `claude/skills/<name>` | `~/.claude/skills/<name>` |
 
 ## 新しい Mac でのセットアップ
 
