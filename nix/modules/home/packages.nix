@@ -10,6 +10,7 @@
     go-task
     awscli2
     terraform
+    herdr
 
     nixd
     nixfmt
