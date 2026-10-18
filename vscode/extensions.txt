@@ -11,6 +11,7 @@ formulahendry.auto-rename-tag
 foxundermoon.shell-format
 golang.go
 hashicorp.terraform
+jnoortheen.nix-ide
 mechatroner.rainbow-csv
 ms-azuretools.vscode-containers
 ms-azuretools.vscode-docker

@@ -210,6 +210,7 @@ homebrew = {
 - `home.packages`:
   - brew から移す CLI: eza, starship, gh, jq, tree, gitleaks, git-secrets, go-task, awscli2, terraform
   - npm から移すもの: `claude-code` (nixpkgs 版は自動更新が無効化されている。更新は `nix flake update`)
+  - VS Code の Nix 拡張 (`jnoortheen.nix-ide`) 用: `nixd` (言語サーバー), `nixfmt` (フォーマッタ)。`vscode/settings.json` から dotfiles の flake を読み込み、nix-darwin / home-manager のオプションを補完できるようにしている
   - **デフォルトの言語ランタイム**: `nodejs_24`, `pnpm`, `go_1_27` (Python はデフォルトでは入れず、必要なプロジェクトの devShell で用意する)
 - すべて nixpkgs (aarch64-darwin) に存在することを確認済み
 
