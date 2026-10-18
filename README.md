@@ -37,10 +37,9 @@ cd ~/Repository/dotfiles
 
 # 3. 適用 (初回は darwin-rebuild が無いので nix run 経由)
 sudo nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake .#raita-mba
-
-# 4. VS Code の拡張機能を入れる
-xargs -n1 code --install-extension < vscode/extensions.txt
 ```
+
+VS Code の拡張機能も `homebrew.nix` の `vscode` から switch 時に入る。
 
 入力ソース (ABC + 日本語ローマ字入力) は nix-darwin で設定できないので、システム設定から手動で追加する。
 
@@ -52,7 +51,6 @@ sudo darwin-rebuild build --flake .                        # ビルドだけ (�
 nix flake update && sudo darwin-rebuild switch --flake .   # パッケージを更新
 sudo darwin-rebuild --rollback                             # 1 つ前の世代に戻す
 nix fmt                                                    # .nix ファイルを整形
-code --list-extensions > vscode/extensions.txt             # VS Code 拡張機能の一覧を更新
 ```
 
 新しく追加したファイルは `git add` してから適用する (flake は git 管理下のファイルしか見ない)。

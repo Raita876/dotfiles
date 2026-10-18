@@ -31,5 +31,32 @@
       "google-japanese-ime"
       "zoom"
     ];
+
+    # VS Code の拡張機能 (`code --install-extension` で入れる)。更新は VS Code に任せる
+    # cleanup = "uninstall" なので、ここに無い拡張機能は switch で削除される。VS Code から追加したらここにも書く
+    vscode = [
+      "anthropic.claude-code"
+      "bierner.markdown-mermaid"
+      "bmewburn.vscode-intelephense-client"
+      "dbaeumer.vscode-eslint"
+      "docker.docker"
+      "dsznajder.es7-react-js-snippets"
+      "editorconfig.editorconfig"
+      "esbenp.prettier-vscode"
+      "formulahendry.auto-close-tag"
+      "formulahendry.auto-rename-tag"
+      "foxundermoon.shell-format"
+      "golang.go"
+      "hashicorp.terraform"
+      "jnoortheen.nix-ide"
+      "mechatroner.rainbow-csv"
+      "ms-azuretools.vscode-containers"
+      "ms-azuretools.vscode-docker"
+      "ms-vscode-remote.remote-containers"
+      "ms-vscode.makefile-tools"
+      "redhat.vscode-yaml"
+      "renesaarsoo.sql-formatter-vsc"
+      "timonwong.shellcheck"
+    ];
   };
 }
