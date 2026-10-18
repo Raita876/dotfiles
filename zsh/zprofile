@@ -8,7 +8,3 @@ if [[ -z "${HOMEBREW_PREFIX:-}" ]]; then
 fi
 # brew shellenv は Homebrew を PATH の先頭に置くので、Nix のパスより後ろへ回す
 path=(${path:#/opt/homebrew/*} /opt/homebrew/bin /opt/homebrew/sbin)
-
-# Composio CLI
-export COMPOSIO_INSTALL_DIR="$HOME/.composio"
-path=("$COMPOSIO_INSTALL_DIR" $path)

@@ -249,7 +249,6 @@ homebrew = {
 **zsh/zprofile** (今の `~/.zprofile` から変更する点)
 - `path+=(/opt/homebrew/opt/go/bin)` と `path+=(/opt/homebrew/opt/node@20/bin)` を削除 (Nix 版を使う)
 - `brew shellenv` は残すが、**Nix のパスより後ろ** に Homebrew を置く。今のままだと `/opt/homebrew/bin` が先頭に来て、移行期間中に brew 版が優先されてしまうため
-- Composio CLI の設定はそのまま
 
 **zsh/zshrc** (今の `~/.zshrc` から変更する点)
 - `eval "$(nodenv init - zsh)"` を削除
