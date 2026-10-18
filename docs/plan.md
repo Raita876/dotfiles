@@ -434,6 +434,6 @@ nix flake update && sudo darwin-rebuild switch --flake .     # パッケージ�
 - `sudo` を使わない `nix build .#darwinConfigurations.raita-mba.system` でビルドが通ることを確認済み (警告なし)。`nix fmt` も差分なし
 - 入る主なバージョン: node 24.21.0 / go 1.27.2 / Claude Code 2.1.300 (nixpkgs 2026-10-16 時点)
 - `home.stateVersion = "26.11"` (home-manager の現行リリース)
-- `homebrew.onActivation.cleanup` は初回適用用に `"none"` にしてある。手順 3 で `"uninstall"` に変える
+- `homebrew.onActivation.cleanup` は初回適用を `"none"` で行い、動作確認後に `"uninstall"` へ変更した
 - zsh の PATH は `/etc/profiles/per-user/raita/bin` (Nix) → … → `/usr/bin` → `/opt/homebrew/bin` の順になる (zprofile で Homebrew を末尾へ移動)
 - `cmux/disabled/` (cmux 0.65.1 の ⌘N 不具合への旧回避策。automation ルールと起動スクリプト) は使われていないため削除した。`cmux.json` の `"shortcut": "cmd+n"` による回避策に置き換え済み。中身はコミット `c8776cd` に残っている

@@ -3,9 +3,8 @@
     enable = true;
 
     onActivation = {
-      # 初回適用は "none" で行い、Nix 版の動作確認後に "uninstall" へ切り替える (docs/plan.md「適用手順」)
-      # "uninstall": 宣言していない formula / cask をアンインストールする
-      cleanup = "none";
+      # 宣言していない formula / cask / tap を削除する。"zap" と違ってアプリの設定データは残す
+      cleanup = "uninstall";
       # switch のたびに brew update しない
       autoUpdate = false;
       # 勝手にアップグレードしない (cask は各アプリの自動更新に任せる)
