@@ -6,8 +6,8 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 
 | パス | 内容 |
 |---|---|
-| `flake.nix` | inputs と `darwinConfigurations."raita-mba"` |
-| `nix/modules/darwin/` | macOS のシステム設定 (`system.nix`)、Homebrew (`homebrew.nix`) |
+| `flake.nix` | inputs、`darwinConfigurations."raita-mba"`、外部向けの `darwinModules.default` / `homeModules.default` |
+| `nix/modules/darwin/` | 端末ごとの値の定義 (`options.nix`)、macOS のシステム設定 (`system.nix`)、Homebrew (`homebrew.nix`)、home-manager の読み込み (`home-manager.nix`) |
 | `nix/modules/home/` | home-manager: CLI ツール (`packages.nix`)、git、direnv、設定ファイルの symlink (`dotfiles.nix`) |
 | `nix/modules/home/programs/claude-code.nix` | Claude Code 本体と設定 (settings.json は switch 時にマージ) |
 | `zsh/`, `ghostty/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
@@ -65,3 +65,43 @@ nix flake init -t ~/Repository/dotfiles#node   # flake.nix と .envrc が置か�
 # flake.nix の nodejs_24 などを編集
 direnv allow                                   # 以後 cd するだけで読み込まれる
 ```
+
+## 職場など別の Mac で使う
+
+`darwinModules.default` を別の flake (職場用の非公開リポジトリなど) から読み込み、端末ごとの値を設定する。
+社内ツール名や会社のメールアドレスは読み込む側に書くので、このリポジトリには載らない。
+
+```nix
+{
+  inputs = {
+    dotfiles.url = "github:Raita876/dotfiles";
+    nixpkgs.follows = "dotfiles/nixpkgs";
+    nix-darwin.follows = "dotfiles/nix-darwin";
+  };
+
+  outputs = { nix-darwin, dotfiles, ... }: {
+    darwinConfigurations.work-mac = nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      modules = [
+        dotfiles.darwinModules.default
+        {
+          dotfiles = {
+            username = "<ユーザー名>";
+            hostname = "work-mac";
+          };
+
+          # リスト (casks / brews / vscode など) は共通分に追加される
+          homebrew.casks = [ "slack" ];
+          # 1 つしか値を持てない設定は mkDefault にしてあるので、普通に書けば上書きできる
+          homebrew.onActivation.cleanup = "none";
+          home-manager.users."<ユーザー名>".programs.git.settings.user.email = "<会社のメールアドレス>";
+        }
+      ];
+    };
+  };
+}
+```
+
+- zshrc などはこのリポジトリへの symlink なので、読み込む側の Mac にもこのリポジトリを `dotfiles.dir` (既定は `~/Repository/dotfiles`) に clone しておく
+- 設定できる値は `nix/modules/darwin/options.nix` を参照
+

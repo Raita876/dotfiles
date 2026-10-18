@@ -1,5 +1,6 @@
 {
   imports = [
+    ./options.nix
     ./packages.nix
     ./git.nix
     ./gh.nix

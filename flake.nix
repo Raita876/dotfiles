@@ -25,27 +25,26 @@
     }:
     let
       system = "aarch64-darwin";
-      hostname = "raita-mba";
-      username = "raita";
-      homedir = "/Users/${username}";
-      # 設定ファイルの symlink 先。リポジトリを移動したらここを変える
-      dotfilesDir = "${homedir}/Repository/dotfiles";
     in
     {
-      darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
-        inherit system;
-        specialArgs = { inherit hostname username homedir; };
-        modules = [
-          ./nix/modules/darwin
+      # 職場用の flake などから読み込めるよう、設定を部品として公開する。
+      # 読み込む側は dotfiles.username / dotfiles.hostname を設定し、必要な値を上書きする (README を参照)
+      darwinModules.default = {
+        imports = [
           home-manager.darwinModules.home-manager
+          ./nix/modules/darwin
+        ];
+      };
+      homeModules.default = ./nix/modules/home;
+
+      darwinConfigurations.raita-mba = nix-darwin.lib.darwinSystem {
+        inherit system;
+        modules = [
+          self.darwinModules.default
           {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              # 既存の ~/.zshrc などと衝突したら *.before-nix に退避する
-              backupFileExtension = "before-nix";
-              extraSpecialArgs = { inherit dotfilesDir; };
-              users.${username} = ./nix/modules/home;
+            dotfiles = {
+              username = "raita";
+              hostname = "raita-mba";
             };
           }
         ];

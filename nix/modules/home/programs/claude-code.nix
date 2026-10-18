@@ -2,12 +2,11 @@
   pkgs,
   lib,
   config,
-  dotfilesDir,
   ...
 }:
 let
   claudeConfigDir = "${config.home.homeDirectory}/.claude";
-  link = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/${path}";
+  link = path: config.lib.file.mkOutOfStoreSymlink "${config.dotfiles.dir}/${path}";
 
   jq = lib.getExe pkgs.jq;
   checkJsonschema = lib.getExe pkgs.check-jsonschema;

@@ -1,10 +1,12 @@
+{ lib, ... }:
 {
   homebrew = {
     enable = true;
 
     onActivation = {
       # 宣言していない formula / cask / tap を削除する。"zap" と違ってアプリの設定データは残す
-      cleanup = "uninstall";
+      # 職場の Mac など、管理外の brew パッケージがある端末では "none" に上書きする
+      cleanup = lib.mkDefault "uninstall";
       # switch のたびに brew update しない
       autoUpdate = false;
       # 勝手にアップグレードしない (cask は各アプリの自動更新に任せる)

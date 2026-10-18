@@ -1,38 +1,31 @@
 {
   pkgs,
   lib,
-  username,
-  homedir,
+  config,
   ...
 }:
 let
-  dockApps = [
-    "/System/Applications/Apps.app"
-    "/Applications/Google Chrome.app"
-    "/System/Applications/System Settings.app"
-    "/Applications/Discord.app"
-    "/Applications/Notion.app"
-    "/Applications/Visual Studio Code.app"
-    "/Applications/cmux.app"
-  ];
-  dockOthers = [ "${homedir}/Downloads" ];
+  inherit (config.dotfiles) username homedir;
 
   # Dock の並びを作り直して再起動するスクリプト。並びが変わるとスクリプトのパスも変わる
   setDock = pkgs.writeShellScript "set-dock" ''
     dockutil=${lib.getExe pkgs.dockutil}
     $dockutil --remove all --no-restart
-    ${lib.concatMapStrings (app: "$dockutil --add ${lib.escapeShellArg app} --no-restart\n") dockApps}
+    ${lib.concatMapStrings (
+      app: "$dockutil --add ${lib.escapeShellArg app} --no-restart\n"
+    ) config.dotfiles.dock.apps}
     ${lib.concatMapStrings (
       dir:
       "$dockutil --add ${lib.escapeShellArg dir} --view auto --display stack --sort name --no-restart\n"
-    ) dockOthers}
+    ) config.dotfiles.dock.others}
     killall Dock || true
   '';
   dockStamp = "${homedir}/.local/state/nix-darwin/dock";
 in
 {
   # 2026-10-15 時点でこの Mac の初期値から変更されていた設定 (defaults read で確認)
-  system.defaults = {
+  # 端末ごとに上書きできるよう、すべての値を mkDefault にする
+  system.defaults = lib.mapAttrsRecursive (_: lib.mkDefault) {
     NSGlobalDomain = {
       # ダークモード
       AppleInterfaceStyle = "Dark";

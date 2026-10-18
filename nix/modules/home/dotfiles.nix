@@ -1,7 +1,7 @@
-{ config, dotfilesDir, ... }:
+{ config, ... }:
 let
   # リポジトリ内のファイルへ直接 symlink する (編集が即反映され、rebuild 不要)
-  link = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/${path}";
+  link = path: config.lib.file.mkOutOfStoreSymlink "${config.dotfiles.dir}/${path}";
 in
 {
   home.file = {

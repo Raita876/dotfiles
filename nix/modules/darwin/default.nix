@@ -1,21 +1,25 @@
 {
   pkgs,
-  hostname,
-  username,
-  homedir,
+  lib,
+  config,
   ...
 }:
+let
+  inherit (config.dotfiles) username hostname homedir;
+in
 {
   imports = [
+    ./options.nix
     ./system.nix
     ./homebrew.nix
+    ./home-manager.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
 
   nix = {
     # 既定の pkgs.nix (stable 系) はインストール済みの 2.35 より古いので、switch で Nix をダウングレードしないよう latest 系を使う
-    package = pkgs.nixVersions.latest;
+    package = lib.mkDefault pkgs.nixVersions.latest;
 
     settings = {
       experimental-features = [
@@ -43,10 +47,10 @@
   };
 
   networking = {
-    hostName = hostname;
-    localHostName = hostname;
+    hostName = lib.mkDefault hostname;
+    localHostName = lib.mkDefault hostname;
     # Finder / AirDrop に表示される名前
-    computerName = hostname;
+    computerName = lib.mkDefault hostname;
   };
 
   # home-manager がホームディレクトリを知るために必要
@@ -59,7 +63,7 @@
   };
 
   # sudo を Touch ID で通す
-  security.pam.services.sudo_local.touchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth = lib.mkDefault true;
 
   system = {
     primaryUser = username;
