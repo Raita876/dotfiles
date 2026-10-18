@@ -118,8 +118,7 @@ dotfiles/
 ├── ghostty/
 │   └── config                    # 今の Ghostty 設定を移植
 ├── cmux/
-│   ├── cmux.json                 # 今の cmux 設定を移植 (コメント付き JSON のまま)
-│   └── disabled/                 # 今の ~/.config/cmux/disabled/ をそのまま移植
+│   └── cmux.json                 # 今の cmux 設定を移植 (コメント付き JSON のまま)
 ├── vscode/
 │   ├── settings.json             # 今の VS Code 設定を移植
 │   └── extensions.txt            # 拡張機能の一覧 (code --list-extensions の出力)
@@ -281,7 +280,7 @@ brew install --cask --adopt google-chrome discord notion visual-studio-code cmux
 cd ~/Repository/dotfiles
 cp ~/.zshrc zsh/zshrc && cp ~/.zprofile zsh/zprofile          # その後、上記の変更点を反映
 cp ~/Library/Application\ Support/com.mitchellh.ghostty/config ghostty/config
-cp ~/.config/cmux/cmux.json cmux/ && cp -R ~/.config/cmux/disabled cmux/
+cp ~/.config/cmux/cmux.json cmux/
 cp ~/Library/Application\ Support/Code/User/settings.json vscode/
 code --list-extensions > vscode/extensions.txt
 ```
@@ -383,4 +382,4 @@ nix flake update && sudo darwin-rebuild switch --flake .     # パッケージ�
 - `home.stateVersion = "26.11"` (home-manager の現行リリース)
 - `homebrew.onActivation.cleanup` は初回適用用に `"none"` にしてある。手順 3 で `"uninstall"` に変える
 - zsh の PATH は `/etc/profiles/per-user/raita/bin` (Nix) → … → `/usr/bin` → `/opt/homebrew/bin` の順になる (zprofile で Homebrew を末尾へ移動)
-- `cmux/disabled/launch-claude-on-new-workspace.sh` は `/opt/homebrew/bin/jq` を直接呼んでいる。brew の jq を消すと動かなくなるので、再び有効にするときは `jq` (PATH 上の Nix 版) に書き換える
+- `cmux/disabled/` (cmux 0.65.1 の ⌘N 不具合への旧回避策。automation ルールと起動スクリプト) は使われていないため削除した。`cmux.json` の `"shortcut": "cmd+n"` による回避策に置き換え済み。中身はコミット `c8776cd` に残っている
