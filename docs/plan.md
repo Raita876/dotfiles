@@ -209,7 +209,7 @@ homebrew = {
     upgrade = false;         # 勝手にアップグレードしない (cask は各アプリの自動更新に任せる)
   };
   brews = [
-    "colima" "docker" "docker-buildx" "docker-compose" "docker-completion"
+    "colima" "docker" "docker-buildx" "docker-compose"
   ];
   casks = [
     "ghostty"
@@ -403,7 +403,8 @@ nix flake update && sudo darwin-rebuild switch --flake .     # パッケージ�
 | 区分 | 対象 | 扱い |
 |---|---|---|
 | Nix へ移す | eza, starship, gh (programs.gh), jq, tree, gitleaks, git-secrets, go-task, awscli, terraform, go | `home.packages` へ。cleanup で brew 版は削除 |
-| brew に残す | docker, docker-buildx, docker-compose, docker-completion, colima | `homebrew.brews` で宣言 |
+| brew に残す | docker, docker-buildx, docker-compose, colima | `homebrew.brews` で宣言 |
+| 削除する | docker-completion | 非推奨。docker の formula 自体に補完が含まれていて、リンクが衝突する (初回適用で `brew bundle` が失敗した) |
 | cask | ghostty, google-chrome, discord, notion, visual-studio-code, cmux, clipy, google-japanese-ime, zoom | `homebrew.casks` で宣言 |
 | 削除する | node, node@20, nodenv | Node はデフォルト `nodejs_24` + devShell に置き換え |
 | 削除する | uv, python@3.12 | Python はグローバルに入れない。必要なプロジェクトの devShell で用意する (macOS 標準の `/usr/bin/python3` は残る) |

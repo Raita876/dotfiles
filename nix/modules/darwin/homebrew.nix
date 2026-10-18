@@ -18,7 +18,6 @@
       "docker"
       "docker-buildx"
       "docker-compose"
-      "docker-completion"
     ];
 
     # GUI アプリ
