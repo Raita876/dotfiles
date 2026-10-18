@@ -110,6 +110,7 @@ dotfiles/
 │           ├── default.nix       # home.stateVersion, imports
 │           ├── packages.nix      # CLI ツール + デフォルトの Node / Go
 │           ├── git.nix           # programs.git (今の ~/.gitconfig を移植)
+│           ├── gh.nix            # programs.gh (git の GitHub 認証を gh に任せる)
 │           ├── direnv.nix        # direnv + nix-direnv
 │           ├── dotfiles.nix      # zsh/ ghostty/ cmux/ vscode/ をホームへ symlink
 │           └── programs/
@@ -220,7 +221,7 @@ homebrew = {
 
 **nix/modules/home/packages.nix**
 - `home.packages`:
-  - brew から移す CLI: eza, starship, gh, jq, tree, gitleaks, git-secrets, go-task, awscli2, terraform
+  - brew から移す CLI: eza, starship, jq, tree, gitleaks, git-secrets, go-task, awscli2, terraform
   - npm から移すもの: `claude-code` (nixpkgs 版は自動更新が無効化されている。更新は `nix flake update`)
   - VS Code の Nix 拡張 (`jnoortheen.nix-ide`) 用: `nixd` (言語サーバー), `nixfmt` (フォーマッタ)。`vscode/settings.json` から dotfiles の flake を読み込み、nix-darwin / home-manager のオプションを補完できるようにしている
   - **デフォルトの言語ランタイム**: `nodejs_24`, `pnpm`, `go_1_27` (Python はデフォルトでは入れず、必要なプロジェクトの devShell で用意する)
@@ -228,6 +229,7 @@ homebrew = {
 
 **nix/modules/home/git.nix**
 - `programs.git` で name / email を設定 (今の `~/.gitconfig` と同じ内容)
+- Nix 版 git は macOS のコマンドラインツールの gitconfig (`credential.helper=osxkeychain`) を読まないため、`gh.nix` の `programs.gh.gitCredentialHelper` で GitHub の認証を `gh auth git-credential` に任せる。`~/.config/gh/config.yml` も home-manager 管理になる (ログイン情報の `hosts.yml` はそのまま)
 - home-manager は `~/.config/git/config` に書き出す。`~/.gitconfig` が残っているとそちらも読まれるため、適用後に削除する
 
 **nix/modules/home/direnv.nix**
@@ -393,7 +395,7 @@ nix flake update && sudo darwin-rebuild switch --flake .     # パッケージ�
 
 | 区分 | 対象 | 扱い |
 |---|---|---|
-| Nix へ移す | eza, starship, gh, jq, tree, gitleaks, git-secrets, go-task, awscli, terraform, go | `home.packages` へ。cleanup で brew 版は削除 |
+| Nix へ移す | eza, starship, gh (programs.gh), jq, tree, gitleaks, git-secrets, go-task, awscli, terraform, go | `home.packages` へ。cleanup で brew 版は削除 |
 | brew に残す | docker, docker-buildx, docker-compose, docker-completion, colima | `homebrew.brews` で宣言 |
 | cask | ghostty, google-chrome, discord, notion, visual-studio-code, cmux | `homebrew.casks` で宣言 |
 | 削除する | node, node@20, nodenv | Node はデフォルト `nodejs_24` + devShell に置き換え |

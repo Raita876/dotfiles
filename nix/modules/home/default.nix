@@ -2,6 +2,7 @@
   imports = [
     ./packages.nix
     ./git.nix
+    ./gh.nix
     ./direnv.nix
     ./dotfiles.nix
     ./programs/claude-code.nix

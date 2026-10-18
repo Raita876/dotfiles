@@ -4,7 +4,6 @@
     # CLI
     eza
     starship
-    gh
     jq
     tree
     gitleaks
