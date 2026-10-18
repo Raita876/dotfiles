@@ -1,0 +1,5 @@
+# cmux のワークスペース切替・並び替え（⌘[ ⌘] ⌘⌃[ ⌘⌃]）に譲る
+keybind = cmd+[=unbind
+keybind = cmd+]=unbind
+keybind = cmd+ctrl+[=unbind
+keybind = cmd+ctrl+]=unbind

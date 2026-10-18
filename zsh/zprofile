@@ -1,0 +1,14 @@
+# PATH の重複を自動で除く
+typeset -U path PATH
+
+# homebrew
+# 設定済みなら再実行しない（nix shell などの子シェルで PATH の先頭を Homebrew に奪われないように）
+if [[ -z "${HOMEBREW_PREFIX:-}" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+# brew shellenv は Homebrew を PATH の先頭に置くので、Nix のパスより後ろへ回す
+path=(${path:#/opt/homebrew/*} /opt/homebrew/bin /opt/homebrew/sbin)
+
+# Composio CLI
+export COMPOSIO_INSTALL_DIR="$HOME/.composio"
+path=("$COMPOSIO_INSTALL_DIR" $path)

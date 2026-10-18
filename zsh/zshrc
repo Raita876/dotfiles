@@ -1,0 +1,21 @@
+# PATH の重複を自動で除く
+typeset -U path PATH
+
+# history
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS
+
+# completion（Nix で入れたツールと、brew で入れた _docker などを有効化）
+fpath=(/etc/profiles/per-user/$USER/share/zsh/site-functions /opt/homebrew/share/zsh/site-functions $fpath)
+autoload -Uz compinit && compinit
+
+# eza
+alias ls=eza
+
+# direnv（プロジェクトの devShell を cd で自動読み込み）
+eval "$(direnv hook zsh)"
+
+# starship（プロンプトを書き換えるので最後に置く）
+eval "$(starship init zsh)"

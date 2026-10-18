@@ -1,0 +1,88 @@
+{
+  "$schema": "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json",
+  "schemaVersion": 1,
+
+  // ---- ユーザー設定（2026-09-20 追加） ----
+  // 新規ワークスペースの既定: ホームディレクトリで Claude Code だけを開く
+  "actions": {
+    "home-claude": {
+      "type": "workspace",
+      "title": "Home + Claude",
+      // cmux 0.65.1 回避策（2026-10-13 追加）: 0.65.1 の ⌘N は ui.newWorkspace.action を無視する
+      // （upstream PR #19112 で skipConfiguredAction: true）ため、⌘N をこのアクションに直結する。
+      // 組み込みの newTab は shortcuts.bindings で解除済み。upstream 修正後は両方とも外してよい。
+      "shortcut": "cmd+n",
+      "restart": "new",
+      "workspace": {
+        // "name" は固定しない。固定名は手動リネーム扱いになり、自動命名が効かなくなるため。
+        "cwd": "~",
+        "layout": {
+          "pane": {
+            "surfaces": [
+              { "type": "terminal", "name": "Claude", "command": "claude", "focus": true }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "ui": {
+    "newWorkspace": {
+      "action": "home-claude"
+    }
+  },
+
+  // ---- ワークスペース自動命名（2026-09-20 追加） ----
+  // Claude Code などのセッション内容から、ワークスペース名とタブ名を自動生成する。
+  // 既定は false（オプトイン）。手動リネームが常に優先され、そのワークスペースの自動命名は止まる。
+  "automation": {
+    "workspaceAutoNaming": true,
+    "autoNamingAgent": "auto",
+    "claudeCodeIntegration": true
+  },
+
+  // ---- ショートカット上書き（2026-10-12 更新） ----
+  // ワークスペース: ⌘N 作成 / ⌘^N 削除 / ⌘[ ] 切替 / ⌘^[ ] 並び替え
+  // ペイン:        ⌘D 右分割 / ⌘^D 下分割 / ⌘W 削除 / ⌘←→↑↓ フォーカス移動
+  // タブ:          ⌘T 作成 / ⌘W 削除 / ⌘<> 切替 / ⌘^<> 並び替え
+  // 名前変更:      ⌘R ワークスペース / ⌘⇧R タブ
+  "shortcuts": {
+    "bindings": {
+      // ワークスペース
+      "closeWorkspace": "cmd+ctrl+n",
+      // ⌘[ ⌘] ⌘^[ ⌘^] のワークスペース切替・並び替えは、この設定ファイルには書かない。
+      // JIS キーボードでは、ファイル経由の "[" "]" 指定が物理キーコード（US 配列前提）で
+      // 二重一致し、⌘[ が「次のワークスペース」として動いてしまうため
+      // （cmux 0.65.0 時点でも upstream issue #3061 は未解決）。
+      // 代わりに Settings > Keyboard Shortcuts と同じ形式（物理キーコード付き）で
+      // UserDefaults (com.cmuxterm.app shortcut.<action>) に保存している。
+      // 対象: prevSidebarTab / nextSidebarTab / moveWorkspaceUp / moveWorkspaceDown
+      // ペイン
+      "splitDown": "cmd+ctrl+d",
+      "focusLeft": "cmd+←",
+      "focusRight": "cmd+→",
+      "focusUp": "cmd+↑",
+      "focusDown": "cmd+↓",
+      // タブ（サーフェス）: ⇧ なしの ⌘, ⌘. で切替、⌘^, ⌘^. で並べ替え
+      "prevSurface": "cmd+,",
+      "nextSurface": "cmd+.",
+      "moveSurfaceLeft": "cmd+ctrl+,",
+      "moveSurfaceRight": "cmd+ctrl+.",
+      // 名前変更（2026-10-14 追加）: 既定の ⌘R / ⌘⇧R を入れ替え
+      "renameWorkspace": "cmd+r",                 // 元は ⌘⇧R
+      "renameTab": "cmd+shift+r",                 // 元は ⌘R
+      // 衝突回避
+      "newTab": null,                             // 元は ⌘N （home-claude アクションに譲る。0.65.1 回避策）
+      "openSettings": "cmd+shift+,",              // 元は ⌘, （タブ切替に譲る）
+      "toggleFocusedWorkspaceGroupCollapsed": null, // 元は ⌘^. （タブ並べ替えに譲る）
+      "newPaneAutoLayout": null,                  // 元は ⌘^N （ワークスペース削除に譲る。0.65 で追加）
+      "focusHistoryBack": null,                   // 元は ⌘[
+      "focusHistoryForward": null,                // 元は ⌘]
+      // browserBack / browserForward (⌥⌘[ / ⌥⌘]) も同じ理由で UserDefaults 側に保存
+      "reloadConfiguration": null,                // 元は ⌘⇧, （設定を開くに譲る）
+      "fileExplorerOpenSelectionFinderAlias": null, // 元は ⌘↓
+      "simulatorRotateLeft": null,                // 元は ⌘←
+      "simulatorRotateRight": null                // 元は ⌘→
+    }
+  }
+}
