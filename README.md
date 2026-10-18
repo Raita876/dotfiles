@@ -107,6 +107,16 @@ direnv allow                                   # 以後 cd するだけで読み
 - 設定できる値は `nix/modules/darwin/options.nix` を参照
 - 共通で入るのは `nix/modules/` の分だけ。個人用の cask や VS Code 拡張機能は `nix/hosts/raita-mba.nix` にあるので、職場の Mac には入らない
 
+### 読み込む側から変えられる値
+
+| 種類 | 値 | 変え方 |
+|---|---|---|
+| 端末ごとの値 | `dotfiles.username` / `hostname` (必須)、`homedir`、`dir`、`dock.apps` / `dock.others` | そのまま書く。Dock は指定すると丸ごと置き換わる |
+| 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol` | そのまま書けば上書きされる |
+| リスト | `home.packages`、`homebrew.brews` / `casks` / `vscode`、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
+| 構成の前提 | `system.stateVersion`、`home.stateVersion`、`home-manager.useGlobalPkgs` / `useUserPackages`、`programs.zsh.enable` など | 違う値を書くとエラーになる。変えるなら `lib.mkForce` (基本は変えない) |
+| 共通のファイル | zshrc、zprofile、ghostty、cmux、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
+
 ### 端末固有のシェル設定と秘密情報
 
 `zsh/zshrc` は最後に `~/.zshrc.local` を読み込む。職場のツールの初期化 (gcloud の補完、nodenv など) はそこに書く。

@@ -34,13 +34,13 @@ in
 
     # 毎週日曜 3:00 に、30 日より古い世代と参照されなくなったパッケージを削除する
     gc = {
-      automatic = true;
-      interval = {
+      automatic = lib.mkDefault true;
+      interval = lib.mkDefault {
         Weekday = 0;
         Hour = 3;
         Minute = 0;
       };
-      options = "--delete-older-than 30d";
+      options = lib.mkDefault "--delete-older-than 30d";
     };
     # 同じ中身のファイルをハードリンクでまとめてディスクを節約する
     optimise.automatic = true;

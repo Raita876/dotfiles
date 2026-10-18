@@ -8,9 +8,9 @@
       # 職場の Mac など、管理外の brew パッケージがある端末では "none" に上書きする
       cleanup = lib.mkDefault "uninstall";
       # switch のたびに brew update しない
-      autoUpdate = false;
+      autoUpdate = lib.mkDefault false;
       # 勝手にアップグレードしない (cask は各アプリの自動更新に任せる)
-      upgrade = false;
+      upgrade = lib.mkDefault false;
     };
 
     # デーモン / サービス系は brew に残す
