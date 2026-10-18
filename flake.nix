@@ -41,12 +41,7 @@
         inherit system;
         modules = [
           self.darwinModules.default
-          {
-            dotfiles = {
-              username = "raita";
-              hostname = "raita-mba";
-            };
-          }
+          ./nix/hosts/raita-mba.nix
         ];
       };
 
