@@ -7,7 +7,6 @@
 let
   inherit (config.dotfiles) username homedir;
 
-  # Dock の並びを作り直して再起動するスクリプト。並びが変わるとスクリプトのパスも変わる
   setDock = pkgs.writeShellScript "set-dock" ''
     dockutil=${lib.getExe pkgs.dockutil}
     $dockutil --remove all --no-restart
@@ -23,30 +22,23 @@ let
   dockStamp = "${homedir}/.local/state/nix-darwin/dock";
 in
 {
-  # 2026-10-15 時点でこの Mac の初期値から変更されていた設定 (defaults read で確認)
-  # 端末ごとに上書きできるよう、すべての値を mkDefault にする
   system.defaults = lib.mapAttrsRecursive (_: lib.mkDefault) {
     NSGlobalDomain = {
-      # ダークモード
       AppleInterfaceStyle = "Dark";
-      # ナチュラルスクロール オフ
       "com.apple.swipescrolldirection" = false;
     };
 
-    # Finder をリスト表示
     finder.FXPreferredViewStyle = "Nlsv";
 
     trackpad = {
-      # タップでクリック
       Clicking = true;
-      # 2 本指クリックでの右クリックはオフにして、右下隅のクリックで右クリック
       TrackpadRightClick = false;
       TrackpadCornerSecondaryClick = 2;
     };
   };
 
-  # system.defaults.dock を使うと、設定が変わっていなくても switch のたびに Dock が再起動される。
-  # 全画面のアプリの上に Dock が出たまま引っ込まなくなるので、並びが変わったときだけ作り直す
+  # system.defaults.dock は switch のたびに Dock を再起動し、全画面アプリの上に Dock が出たままになるため、
+  # 並びが変わったときだけ作り直す
   system.activationScripts.postActivation.text = ''
     if [ "$(cat ${dockStamp} 2>/dev/null)" != "${setDock}" ]; then
       echo "updating Dock..." >&2

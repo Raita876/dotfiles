@@ -6,8 +6,7 @@
     "home-claude": {
       "type": "workspace",
       "title": "Home + Claude",
-      // cmux 0.65.1 の不具合回避: ⌘N が ui.newWorkspace.action を無視するため、⌘N をこのアクションに直接割り当てる。
-      // 組み込みの newTab の解除とあわせて、upstream で修正されたら外す
+      // cmux 0.65.1 の不具合回避: ⌘N が ui.newWorkspace.action を無視するため、⌘N をこのアクションに直接割り当てる (upstream で修正されたら外す)
       "shortcut": "cmd+n",
       "restart": "new",
       "workspace": {
@@ -37,9 +36,7 @@
 
   "shortcuts": {
     "bindings": {
-      // ⌘[ ⌘] ⌘^[ ⌘^] (ワークスペースの切替・並び替え) と ⌥⌘[ ⌥⌘] (ブラウザの戻る・進む) はここに書かない。
-      // JIS キーボードではファイル経由の "[" "]" 指定が二重に一致して誤動作するため (upstream issue #3061)、
-      // UserDefaults の com.cmuxterm.app に直接登録している (scripts/cmux/cmux-shortcuts.sh)
+      // [ ] 系は JIS で二重に一致して誤動作するため (upstream issue #3061) ここに書かず、scripts/cmux/cmux-shortcuts.sh で登録する
       "closeWorkspace": "cmd+ctrl+n",
       "splitDown": "cmd+ctrl+d",
       "focusLeft": "cmd+←",
@@ -54,7 +51,6 @@
       "renameTab": "cmd+shift+r",
       "openSettings": "cmd+shift+,",
 
-      // 上の割り当てと衝突する既定のショートカットを解除する
       "newTab": null,
       "toggleFocusedWorkspaceGroupCollapsed": null,
       "newPaneAutoLayout": null,

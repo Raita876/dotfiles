@@ -1,4 +1,3 @@
-# 個人用 Mac だけに入れるもの。共通の設定は nix/modules/ にあり、ここに書いたリストはそれに追加される
 {
   dotfiles = {
     username = "raita";

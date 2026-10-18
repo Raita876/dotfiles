@@ -18,7 +18,7 @@ in
   nixpkgs.config.allowUnfree = true;
 
   nix = {
-    # 既定の pkgs.nix (stable 系) はインストール済みの 2.35 より古いので、switch で Nix をダウングレードしないよう latest 系を使う
+    # 既定の pkgs.nix はインストール済みの Nix より古く、switch でダウングレードされるため
     package = lib.mkDefault pkgs.nixVersions.latest;
 
     settings = {
@@ -32,7 +32,6 @@ in
       ];
     };
 
-    # 毎週日曜 3:00 に、30 日より古い世代と参照されなくなったパッケージを削除する
     gc = {
       automatic = lib.mkDefault true;
       interval = lib.mkDefault {
@@ -42,18 +41,15 @@ in
       };
       options = lib.mkDefault "--delete-older-than 30d";
     };
-    # 同じ中身のファイルをハードリンクでまとめてディスクを節約する
     optimise.automatic = true;
   };
 
   networking = {
     hostName = lib.mkDefault hostname;
     localHostName = lib.mkDefault hostname;
-    # Finder / AirDrop に表示される名前
     computerName = lib.mkDefault hostname;
   };
 
-  # home-manager がホームディレクトリを知るために必要
   users.users.${username}.home = homedir;
 
   programs.zsh = {
@@ -62,7 +58,6 @@ in
     enableGlobalCompInit = false;
   };
 
-  # sudo を Touch ID で通す
   security.pam.services.sudo_local.touchIdAuth = lib.mkDefault true;
 
   system = {

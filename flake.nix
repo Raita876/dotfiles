@@ -27,8 +27,6 @@
       system = "aarch64-darwin";
     in
     {
-      # 職場用の flake などから読み込めるよう、設定を部品として公開する。
-      # 読み込む側は dotfiles.username / dotfiles.hostname を設定し、必要な値を上書きする (README を参照)
       darwinModules.default = {
         imports = [
           home-manager.darwinModules.home-manager
@@ -45,7 +43,6 @@
         ];
       };
 
-      # プロジェクトに devShell の雛形を置く: nix flake init -t ~/Repository/dotfiles#node
       templates.node = {
         path = ./templates/node;
         description = "Node.js devShell (direnv 対応)";

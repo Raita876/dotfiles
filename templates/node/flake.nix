@@ -17,7 +17,6 @@
     {
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
-          # プロジェクトに合わせて変える (例: nodejs_22, nodejs_24)
           packages = [
             pkgs.nodejs_24
             pkgs.pnpm

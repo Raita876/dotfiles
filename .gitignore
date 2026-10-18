@@ -1,9 +1,6 @@
-# nix build の出力
 result
 result-*
 
-# direnv
 .direnv/
 
-# cmux が設定変更時に作るバックアップ
 cmux/*.bak

@@ -4,7 +4,6 @@ let
   cfg = config.dotfiles;
 in
 {
-  # 端末ごとに変わる値。darwinModules.default を読み込む側 (職場用の flake など) で設定する
   options.dotfiles = {
     username = mkOption {
       type = types.str;
