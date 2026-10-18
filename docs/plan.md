@@ -157,6 +157,7 @@ dotfiles/
 - `nix.settings.experimental-features = [ "nix-command" "flakes" ]`, `trusted-users = [ "root" "raita" ]`
 - `system.primaryUser = "raita"`, `system.stateVersion = 6`
 - `nix.package = pkgs.nixVersions.latest` (既定の `pkgs.nix` は 2.34 系で、インストール済みの 2.35.3 からダウングレードになるため)
+- `nix.gc`: 毎週日曜 3:00 に 30 日より古い世代を削除。`nix.optimise.automatic`: 同じ中身のファイルをハードリンクでまとめる
 - `networking.{hostName,localHostName,computerName} = "raita-mba"`
 - `programs.zsh.enable = true`
 - `nixpkgs.config.allowUnfree = true`
