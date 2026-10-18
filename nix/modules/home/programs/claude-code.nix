@@ -12,13 +12,7 @@ let
   checkJsonschema = lib.getExe pkgs.check-jsonschema;
   jsonFormat = pkgs.formats.json { };
 
-  settings = {
-    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-    permissions.defaultMode = "auto";
-    skipDangerousModePermissionPrompt = true;
-    theme = "dark";
-  };
-  settingsFile = jsonFormat.generate "claude-settings.json" settings;
+  settingsFile = jsonFormat.generate "claude-settings.json" config.dotfiles.claudeCode.settings;
 
   # agents/skills/ 以下のディレクトリを 1 つずつリンクする (~/.claude/skills/synced は claude.ai の同期用なので触らない)
   skillNames = builtins.attrNames (
@@ -26,11 +20,25 @@ let
   );
 in
 {
-  home.packages = [ pkgs.claude-code ];
+  options.dotfiles.claudeCode.settings = lib.mkOption {
+    inherit (jsonFormat) type;
+    default = { };
+    description = "~/.claude/settings.json に switch のたびに書き込む設定。ここに無いキーは Claude Code が書いた値のまま残る";
+  };
+
+  # 職場の Mac など、端末ごとに上書きできるよう値はすべて mkDefault にする
+  config.dotfiles.claudeCode.settings = lib.mapAttrsRecursive (_: lib.mkDefault) {
+    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+    permissions.defaultMode = "auto";
+    skipDangerousModePermissionPrompt = true;
+    theme = "dark";
+  };
+
+  config.home.packages = [ pkgs.claude-code ];
 
   # コピーではなくマージする: Claude Code は /config や /permissions でこのファイルを自分で書き換えるため、
   # 丸ごと置き換えるとその内容が switch のたびに消える。上の settings のキーが優先され、それ以外は残る
-  home.activation.writeClaudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  config.home.activation.writeClaudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     SETTINGS_FILE="${claudeConfigDir}/settings.json"
     mkdir -p "${claudeConfigDir}"
 
@@ -47,7 +55,7 @@ in
     chmod 644 "$SETTINGS_FILE"
   '';
 
-  home.activation.validateClaudeSettings = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] ''
+  config.home.activation.validateClaudeSettings = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] ''
     SETTINGS_FILE="${claudeConfigDir}/settings.json"
     SCHEMA_URL=$(${jq} -r '.["$schema"]' "$SETTINGS_FILE")
 
@@ -59,7 +67,7 @@ in
     fi
   '';
 
-  home.file = {
+  config.home.file = {
     # ユーザー全体の指示は CLAUDE.md という名前でしか読まれないので、共通の AGENTS.md をこの名前でリンクする
     ".claude/CLAUDE.md".source = link "agents/AGENTS.md";
     ".claude/shared".source = link "agents/shared";
