@@ -20,15 +20,7 @@
       "ghostty"
       "google-chrome"
       "notion"
-      "visual-studio-code"
-      "cmux"
       "zoom"
-    ];
-
-    # 宣言されていない拡張機能は switch で削除される
-    vscode = [
-      "anthropic.claude-code"
-      "jnoortheen.nix-ide"
     ];
   };
 }

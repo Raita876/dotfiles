@@ -13,6 +13,8 @@ in
     ./system.nix
     ./homebrew.nix
     ./home-manager.nix
+    ./programs/vscode.nix
+    ./programs/cmux.nix
   ];
 
   nixpkgs.config.allowUnfree = true;

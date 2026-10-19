@@ -6,7 +6,8 @@
 }:
 let
   claudeConfigDir = "${config.home.homeDirectory}/.claude";
-  link = path: config.lib.file.mkOutOfStoreSymlink "${config.dotfiles.dir}/${path}";
+  inherit (config.lib.dotfiles) link;
+  cfg = config.dotfiles.claudeCode;
 
   claude = lib.getExe pkgs.claude-code;
   jq = lib.getExe pkgs.jq;
@@ -37,6 +38,12 @@ in
     type = lib.types.listOf lib.types.str;
     default = [ ];
     description = "<プラグイン名>@<マーケットプレイス名> の一覧。switch 時に入っていなければインストールする";
+  };
+
+  options.dotfiles.claudeCode.extraSkills = lib.mkOption {
+    type = lib.types.attrsOf lib.types.path;
+    default = { };
+    description = "~/.claude/skills/<名前> に追加で置くスキル (名前 → ディレクトリ)。読み込む側のリポジトリのスキルを足すのに使う";
   };
 
   config.dotfiles.claudeCode.marketplaces.claude-plugins-official =
@@ -81,13 +88,13 @@ in
         if ! ${jq} -e --arg m ${lib.escapeShellArg name} 'has($m)' "${claudeConfigDir}/plugins/known_marketplaces.json" >/dev/null 2>&1; then
           run ${claude} plugin marketplace add ${lib.escapeShellArg repo} || echo "Claude Code marketplace ${name} could not be added" >&2
         fi
-      '') config.dotfiles.claudeCode.marketplaces
+      '') cfg.marketplaces
     )
     + lib.concatMapStrings (plugin: ''
       if ! ${jq} -e --arg p ${lib.escapeShellArg plugin} '.plugins | has($p)' "${claudeConfigDir}/plugins/installed_plugins.json" >/dev/null 2>&1; then
         run ${claude} plugin install ${lib.escapeShellArg plugin} || echo "Claude Code plugin ${plugin} could not be installed" >&2
       fi
-    '') config.dotfiles.claudeCode.plugins
+    '') cfg.plugins
   );
 
   config.home.activation.validateClaudeSettings = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] ''
@@ -113,5 +120,8 @@ in
     map (
       name: lib.nameValuePair ".claude/skills/${name}" { source = link "agents/skills/${name}"; }
     ) skillNames
-  );
+  )
+  // lib.mapAttrs' (
+    name: source: lib.nameValuePair ".claude/skills/${name}" { inherit source; }
+  ) cfg.extraSkills;
 }

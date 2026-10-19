@@ -2,7 +2,6 @@
 {
   home.packages = with pkgs; [
     eza
-    starship
     jq
     tree
     gitleaks
