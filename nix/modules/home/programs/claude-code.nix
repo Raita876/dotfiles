@@ -8,6 +8,7 @@ let
   claudeConfigDir = "${config.home.homeDirectory}/.claude";
   link = path: config.lib.file.mkOutOfStoreSymlink "${config.dotfiles.dir}/${path}";
 
+  claude = lib.getExe pkgs.claude-code;
   jq = lib.getExe pkgs.jq;
   checkJsonschema = lib.getExe pkgs.check-jsonschema;
   jsonFormat = pkgs.formats.json { };
@@ -25,6 +26,26 @@ in
     default = { };
     description = "~/.claude/settings.json に switch のたびに書き込む設定。ここに無いキーは Claude Code が書いた値のまま残る";
   };
+
+  options.dotfiles.claudeCode.marketplaces = lib.mkOption {
+    type = lib.types.attrsOf lib.types.str;
+    default = { };
+    description = "プラグインの取得元。マーケットプレイス名 → GitHub リポジトリ (owner/repo)";
+  };
+
+  options.dotfiles.claudeCode.plugins = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    description = "<プラグイン名>@<マーケットプレイス名> の一覧。switch 時に入っていなければインストールする";
+  };
+
+  config.dotfiles.claudeCode.marketplaces.claude-plugins-official =
+    lib.mkDefault "anthropics/claude-plugins-official";
+
+  config.dotfiles.claudeCode.plugins = [
+    "claude-security@claude-plugins-official"
+    "pr-review-toolkit@claude-plugins-official"
+  ];
 
   config.dotfiles.claudeCode.settings = lib.mapAttrsRecursive (_: lib.mkDefault) {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
@@ -52,6 +73,22 @@ in
     fi
     chmod 644 "$SETTINGS_FILE"
   '';
+
+  # ネットワークに繋がらないときも switch は止めない (次の switch で再試行される)
+  config.home.activation.installClaudePlugins = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] (
+    lib.concatStrings (
+      lib.mapAttrsToList (name: repo: ''
+        if ! ${jq} -e --arg m ${lib.escapeShellArg name} 'has($m)' "${claudeConfigDir}/plugins/known_marketplaces.json" >/dev/null 2>&1; then
+          run ${claude} plugin marketplace add ${lib.escapeShellArg repo} || echo "Claude Code marketplace ${name} could not be added" >&2
+        fi
+      '') config.dotfiles.claudeCode.marketplaces
+    )
+    + lib.concatMapStrings (plugin: ''
+      if ! ${jq} -e --arg p ${lib.escapeShellArg plugin} '.plugins | has($p)' "${claudeConfigDir}/plugins/installed_plugins.json" >/dev/null 2>&1; then
+        run ${claude} plugin install ${lib.escapeShellArg plugin} || echo "Claude Code plugin ${plugin} could not be installed" >&2
+      fi
+    '') config.dotfiles.claudeCode.plugins
+  );
 
   config.home.activation.validateClaudeSettings = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] ''
     SETTINGS_FILE="${claudeConfigDir}/settings.json"
