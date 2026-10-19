@@ -36,9 +36,11 @@
 
   "shortcuts": {
     "bindings": {
-      // [ ] 系は JIS で二重に一致して誤動作するため (upstream issue #3061) ここに書かず、scripts/cmux/cmux-shortcuts.sh で登録する
+      "prevSidebarTab": "cmd+o",
+      "nextSidebarTab": "cmd+l",
+      "moveWorkspaceUp": "cmd+ctrl+o",
+      "moveWorkspaceDown": "cmd+ctrl+l",
       "closeWorkspace": "cmd+ctrl+n",
-      "splitDown": "cmd+ctrl+d",
       "focusLeft": "cmd+←",
       "focusRight": "cmd+→",
       "focusUp": "cmd+↑",
@@ -52,6 +54,9 @@
       "openSettings": "cmd+shift+,",
 
       "newTab": null,
+      "openFolder": null,
+      "focusBrowserAddressBar": null,
+      "canvasOverview": null,
       "toggleFocusedWorkspaceGroupCollapsed": null,
       "newPaneAutoLayout": null,
       "focusHistoryBack": null,

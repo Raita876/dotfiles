@@ -12,7 +12,6 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `nix/modules/home/` | home-manager: CLI ツール (`packages.nix`)、git、direnv、設定ファイルの symlink (`dotfiles.nix`) |
 | `nix/modules/home/programs/claude-code.nix` | Claude Code 本体と設定 (settings.json は switch 時にマージ) |
 | `zsh/`, `ghostty/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
-| `scripts/cmux/` | Nix で扱えない cmux 関連の設定を書き込むスクリプト (新しい Mac で 1 回実行) |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
 | リポジトリ | リンク先 |
@@ -44,13 +43,6 @@ sudo nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- sw
 VS Code の拡張機能も `homebrew.nix` の `vscode` から switch 時に入る。
 
 入力ソース (ABC + 日本語ローマ字入力) は nix-darwin で設定できないので、システム設定から手動で追加する。
-
-cmux のショートカットのうち Nix で扱えないものは、スクリプトで 1 回だけ設定する (cmux の設定をリセットしたときも再実行する):
-
-```sh
-scripts/cmux/cmux-shortcuts.sh    # ⌘[ ⌘] などの [ ] 系を JIS キーボード向けに登録 (実行後に cmux を再起動)
-scripts/cmux/symbolichotkeys.sh   # macOS 標準の ⌃⌘D (辞書で調べる) を無効化 (cmux の「下に分割」と衝突するため)
-```
 
 ## 日常の操作
 
