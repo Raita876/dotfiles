@@ -11,7 +11,6 @@ in
 
   # 一時ファイルに書いてから置き換える保存方式でもリンクが切れないよう、ディレクトリごとリンクする
   xdg.configFile = {
-    "ghostty".source = link "ghostty";
     "cmux".source = link "cmux";
   };
 }
