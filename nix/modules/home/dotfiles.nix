@@ -6,6 +6,7 @@ in
   home.file = {
     ".zshrc".source = link "zsh/zshrc";
     ".zprofile".source = link "zsh/zprofile";
+    ".config/starship.toml".source = link "starship/starship.toml";
     "Library/Application Support/Code/User/settings.json".source = link "vscode/settings.json";
   };
 
