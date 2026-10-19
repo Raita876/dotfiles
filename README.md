@@ -13,6 +13,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `nix/modules/home/` | home-manager: 設定を持たない CLI ツール (`packages.nix`) |
 | `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code)。パッケージ、symlink、設定を 1 ファイルにまとめる |
 | `zsh/`, `starship/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `nix/apps.nix` | `nix run .#switch` などの操作 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
 | リポジトリ | リンク先 |
@@ -37,8 +38,8 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://nixos.org/nix/install | sh
 git clone <このリポジトリ> ~/Repository/dotfiles
 cd ~/Repository/dotfiles
 
-# 3. 適用 (初回は darwin-rebuild が無いので nix run 経由)
-sudo nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake .#raita-mba
+# 3. 適用 (初回は flakes がまだ有効でないのでオプションを付ける)
+nix --extra-experimental-features 'nix-command flakes' run .#switch
 ```
 
 VS Code の拡張機能も `homebrew.nix` の `vscode` から switch 時に入る。
@@ -48,12 +49,14 @@ VS Code の拡張機能も `homebrew.nix` の `vscode` から switch 時に入�
 ## 日常の操作
 
 ```sh
-sudo darwin-rebuild switch --flake .                       # 設定を反映
-sudo darwin-rebuild build --flake .                        # ビルドだけ (エラー確認)
-nix flake update && sudo darwin-rebuild switch --flake .   # パッケージを更新
-sudo darwin-rebuild --rollback                             # 1 つ前の世代に戻す
-nix fmt                                                    # .nix ファイルを整形
+nix run .#switch                  # 設定を反映
+nix run .#build                   # ビルドだけ (エラー確認)
+nix run .#update                  # flake.lock を更新してビルドを確認 (反映は switch)
+sudo darwin-rebuild --rollback    # 1 つ前の世代に戻す
+nix fmt                           # .nix ファイルを整形
 ```
+
+`nix run ~/Repository/dotfiles#switch` のように指定すれば、どのディレクトリからでも実行できる。
 
 新しく追加したファイルは `git add` してから適用する (flake は git 管理下のファイルしか見ない)。
 

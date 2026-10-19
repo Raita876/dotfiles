@@ -43,6 +43,14 @@
         ];
       };
 
+      apps.${system} = import ./nix/apps.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        inherit (nixpkgs) lib;
+        darwinRebuild = nix-darwin.packages.${system}.darwin-rebuild;
+        dir = self.darwinConfigurations.raita-mba.config.dotfiles.dir;
+        host = "raita-mba";
+      };
+
       templates.node = {
         path = ./templates/node;
         description = "Node.js devShell (direnv 対応)";
