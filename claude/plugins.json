@@ -1,0 +1,9 @@
+{
+  "marketplaces": {
+    "claude-plugins-official": "anthropics/claude-plugins-official"
+  },
+  "plugins": [
+    "claude-security@claude-plugins-official",
+    "pr-review-toolkit@claude-plugins-official"
+  ]
+}

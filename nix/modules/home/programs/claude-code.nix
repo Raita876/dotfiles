@@ -13,6 +13,9 @@ let
   checkJsonschema = lib.getExe pkgs.check-jsonschema;
   jsonFormat = pkgs.formats.json { };
 
+  cfg = config.dotfiles.claudeCode;
+  plugins = lib.importJSON ../../../../claude/plugins.json;
+
   settingsFile = jsonFormat.generate "claude-settings.json" config.dotfiles.claudeCode.settings;
 
   # ~/.claude/skills/synced は claude.ai の同期用なので触らない
@@ -39,20 +42,18 @@ in
     description = "<プラグイン名>@<マーケットプレイス名> の一覧。switch 時に入っていなければインストールする";
   };
 
-  config.dotfiles.claudeCode.marketplaces.claude-plugins-official =
-    lib.mkDefault "anthropics/claude-plugins-official";
-
-  config.dotfiles.claudeCode.plugins = [
-    "claude-security@claude-plugins-official"
-    "pr-review-toolkit@claude-plugins-official"
-  ];
-
-  config.dotfiles.claudeCode.settings = lib.mapAttrsRecursive (_: lib.mkDefault) {
-    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-    permissions.defaultMode = "auto";
-    skipDangerousModePermissionPrompt = true;
-    theme = "dark";
+  options.dotfiles.claudeCode.extraSkills = lib.mkOption {
+    type = lib.types.attrsOf lib.types.path;
+    default = { };
+    description = "~/.claude/skills/<名前> に追加で置くスキル (名前 → ディレクトリ)。読み込む側のリポジトリのスキルを足すのに使う";
   };
+
+  # 共通の値は claude/ 以下の JSON に置き、ここでは読み込むだけにする
+  config.dotfiles.claudeCode.marketplaces = lib.mapAttrs (_: lib.mkDefault) plugins.marketplaces;
+  config.dotfiles.claudeCode.plugins = plugins.plugins;
+  config.dotfiles.claudeCode.settings = lib.mapAttrsRecursive (_: lib.mkDefault) (
+    lib.importJSON ../../../../claude/settings.json
+  );
 
   config.home.packages = [ pkgs.claude-code ];
 
@@ -81,13 +82,13 @@ in
         if ! ${jq} -e --arg m ${lib.escapeShellArg name} 'has($m)' "${claudeConfigDir}/plugins/known_marketplaces.json" >/dev/null 2>&1; then
           run ${claude} plugin marketplace add ${lib.escapeShellArg repo} || echo "Claude Code marketplace ${name} could not be added" >&2
         fi
-      '') config.dotfiles.claudeCode.marketplaces
+      '') cfg.marketplaces
     )
     + lib.concatMapStrings (plugin: ''
       if ! ${jq} -e --arg p ${lib.escapeShellArg plugin} '.plugins | has($p)' "${claudeConfigDir}/plugins/installed_plugins.json" >/dev/null 2>&1; then
         run ${claude} plugin install ${lib.escapeShellArg plugin} || echo "Claude Code plugin ${plugin} could not be installed" >&2
       fi
-    '') config.dotfiles.claudeCode.plugins
+    '') cfg.plugins
   );
 
   config.home.activation.validateClaudeSettings = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] ''
@@ -113,5 +114,8 @@ in
     map (
       name: lib.nameValuePair ".claude/skills/${name}" { source = link "agents/skills/${name}"; }
     ) skillNames
-  );
+  )
+  // lib.mapAttrs' (
+    name: source: lib.nameValuePair ".claude/skills/${name}" { inherit source; }
+  ) cfg.extraSkills;
 }

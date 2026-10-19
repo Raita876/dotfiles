@@ -8,10 +8,12 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 |---|---|
 | `flake.nix` | inputs、`darwinConfigurations."raita-mba"`、外部向けの `darwinModules.default` / `homeModules.default` |
 | `nix/modules/darwin/` | 端末ごとの値の定義 (`options.nix`)、macOS のシステム設定 (`system.nix`)、Homebrew (`homebrew.nix`)、home-manager の読み込み (`home-manager.nix`) |
-| `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask と VS Code 拡張機能) |
+| `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask) |
 | `nix/modules/home/` | home-manager: CLI ツール (`packages.nix`)、git、direnv、設定ファイルの symlink (`dotfiles.nix`) |
-| `nix/modules/home/programs/claude-code.nix` | Claude Code 本体と設定 (settings.json は switch 時にマージ) |
+| `nix/modules/home/programs/claude-code.nix` | Claude Code 本体と、`claude/settings.json` / `claude/plugins.json` を反映する仕組み |
 | `zsh/`, `starship/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `claude/settings.json`, `claude/plugins.json` | Claude Code の共通設定とプラグイン一覧 (switch で反映) |
+| `vscode/extensions.json`, `vscode/extensions.raita-mba.json` | VS Code の拡張機能 (共通 / 個人用 Mac だけ。switch で反映) |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
 | リポジトリ | リンク先 |
@@ -40,7 +42,7 @@ cd ~/Repository/dotfiles
 sudo nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake .#raita-mba
 ```
 
-VS Code の拡張機能も `homebrew.nix` の `vscode` から switch 時に入る。
+VS Code の拡張機能も `vscode/extensions*.json` から switch 時に入る。
 
 入力ソース (ABC + 日本語ローマ字入力) は nix-darwin で設定できないので、システム設定から手動で追加する。
 
@@ -105,7 +107,7 @@ direnv allow                                   # 以後 cd するだけで読み
 
 - zshrc などはこのリポジトリへの symlink なので、読み込む側の Mac にもこのリポジトリを `dotfiles.dir` (既定は `~/Repository/dotfiles`) に clone しておく
 - 設定できる値は `nix/modules/darwin/options.nix` を参照
-- 共通で入るのは `nix/modules/` の分だけ。個人用の cask や VS Code 拡張機能は `nix/hosts/raita-mba.nix` にあるので、職場の Mac には入らない
+- 共通で入るのは `nix/modules/` の分だけ。個人用の cask は `nix/hosts/raita-mba.nix`、個人用の VS Code 拡張機能は `vscode/extensions.raita-mba.json` にあるので、職場の Mac には入らない
 
 ### 読み込む側から変えられる値
 
@@ -113,7 +115,7 @@ direnv allow                                   # 以後 cd するだけで読み
 |---|---|---|
 | 端末ごとの値 | `dotfiles.username` / `hostname` (必須)、`homedir`、`dir`、`dock.apps` / `dock.others` | そのまま書く。Dock は指定すると丸ごと置き換わる |
 | 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*` | そのまま書けば上書きされる |
-| リスト | `home.packages`、`homebrew.brews` / `casks` / `vscode`、`dotfiles.claudeCode.plugins`、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
+| リスト | `home.packages`、`homebrew.brews` / `casks` / `vscode`、`dotfiles.claudeCode.plugins`、`dotfiles.claudeCode.extraSkills` (名前 → ディレクトリ)、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
 | 構成の前提 | `system.stateVersion`、`home.stateVersion`、`home-manager.useGlobalPkgs` / `useUserPackages`、`programs.zsh.enable` など | 違う値を書くとエラーになる。変えるなら `lib.mkForce` (基本は変えない) |
 | 共通のファイル | zshrc、zprofile、starship、cmux、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
 
@@ -121,6 +123,16 @@ home-manager 側の値は `home-manager.users."<ユーザー名>"` の下に書�
 
 ```nix
 home-manager.users."<ユーザー名>".dotfiles.claudeCode.settings.permissions.defaultMode = "default";
+```
+
+職場用のプラグインやスキルを足すなら:
+
+```nix
+home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
+  marketplaces.company-plugins = "<org>/<repo>";
+  plugins = [ "some-tool@company-plugins" ];
+  extraSkills.internal-deploy = ./skills/internal-deploy;   # ~/.claude/skills/internal-deploy になる
+};
 ```
 
 `dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。

@@ -26,9 +26,6 @@
     ];
 
     # 宣言されていない拡張機能は switch で削除される
-    vscode = [
-      "anthropic.claude-code"
-      "jnoortheen.nix-ide"
-    ];
+    vscode = lib.importJSON ../../../vscode/extensions.json;
   };
 }
