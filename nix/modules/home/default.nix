@@ -2,10 +2,11 @@
   imports = [
     ./options.nix
     ./packages.nix
-    ./git.nix
-    ./gh.nix
-    ./direnv.nix
-    ./dotfiles.nix
+    ./programs/zsh.nix
+    ./programs/starship.nix
+    ./programs/git.nix
+    ./programs/gh.nix
+    ./programs/direnv.nix
     ./programs/claude-code.nix
   ];
 
