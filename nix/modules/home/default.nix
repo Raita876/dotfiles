@@ -2,6 +2,7 @@
   imports = [
     ./options.nix
     ./packages.nix
+    ./git-hooks.nix
     ./programs/zsh.nix
     ./programs/starship.nix
     ./programs/git.nix

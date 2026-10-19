@@ -60,6 +60,8 @@ nix fmt                           # .nix ファイルを整形
 
 新しく追加したファイルは `git add` してから適用する (flake は git 管理下のファイルしか見ない)。
 
+switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
+
 ## プロジェクトごとの開発環境
 
 デフォルトでは Node.js 24 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
