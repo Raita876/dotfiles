@@ -5,7 +5,9 @@
   # 宣言されていない拡張機能は switch で削除される
   homebrew.vscode = [
     "anthropic.claude-code"
+    "hashicorp.terraform"
     "jnoortheen.nix-ide"
+    "ms-vscode-remote.remote-containers"
   ];
 
   home-manager.users.${config.dotfiles.username} =
