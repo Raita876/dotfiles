@@ -34,6 +34,16 @@
     "claudeCodeIntegration": true
   },
 
+  // 内蔵ブラウザは使わない。リンクはすべて既定のブラウザで開く
+  "browser": {
+    "openTerminalLinksInCmuxBrowser": false,
+    "interceptTerminalOpenCommandInCmuxBrowser": false
+  },
+  "sidebar": {
+    "openPullRequestLinksInCmuxBrowser": false,
+    "openPortLinksInCmuxBrowser": false
+  },
+
   "shortcuts": {
     "bindings": {
       "prevSidebarTab": "cmd+o",
@@ -56,6 +66,10 @@
       "newTab": null,
       "openFolder": null,
       "focusBrowserAddressBar": null,
+      "openBrowser": null,
+      "splitBrowserRight": null,
+      "splitBrowserDown": null,
+      "newBrowserWorkspace": null,
       "canvasOverview": null,
       "toggleFocusedWorkspaceGroupCollapsed": null,
       "newPaneAutoLayout": null,
