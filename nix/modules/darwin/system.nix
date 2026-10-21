@@ -37,6 +37,13 @@ in
     };
   };
 
+  # eMudhra 中間CA 鍵漏洩の暫定対応。cacert が NSS 3.131.1 以降になったら外す
+  # https://emudhra.we-have-a-problem.com/
+  security.pki.caCertificateBlacklist = [
+    "Comodo AAA Services root"
+    "emSign ECC Root CA - G3"
+  ];
+
   # system.defaults.dock は switch のたびに Dock を再起動し、全画面アプリの上に Dock が出たままになるため、
   # 並びが変わったときだけ作り直す
   system.activationScripts.postActivation.text = ''
