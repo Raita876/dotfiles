@@ -37,7 +37,8 @@ in
     };
   };
 
-  # eMudhra 中間CA 鍵漏洩の暫定対応。cacert が NSS 3.131.1 以降になったら外す
+  # eMudhra 中間CA 鍵漏洩の暫定対応。nixpkgs-unstable の cacert が NSS 3.131.1 以降になったら外す
+  # (nodejs は --openssl-use-def-ca-store でビルドされているので、このバンドルで一緒に守られる)
   # https://emudhra.we-have-a-problem.com/
   security.pki.caCertificateBlacklist = [
     "Comodo AAA Services root"
@@ -51,6 +52,26 @@ in
       echo "updating Dock..." >&2
       launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- sh -c \
         'mkdir -p "$(dirname ${dockStamp})" && ${setDock} && echo ${setDock} > ${dockStamp}'
+    fi
+
+    # eMudhra の暫定対応 (macOS 側)。標準の curl / git / python3 などは /etc/ssl/cert.pem を失効確認なしで使うので、
+    # そこからも同じルートを外す。macOS のアップデートで戻ったら次の switch でまた外す
+    if grep -qE '^=== .*/CN=(AAA Certificate Services|emSign ECC Root CA - G3)$' /etc/ssl/cert.pem; then
+      echo "removing eMudhra-affected roots from /etc/ssl/cert.pem..." >&2
+      cp -p /etc/ssl/cert.pem /etc/ssl/cert.pem.bak
+      awk '/^(###|===) /{skip=0}
+        /^=== .*\/CN=(AAA Certificate Services|emSign ECC Root CA - G3)$/{skip=1}
+        !skip' /etc/ssl/cert.pem.bak > /etc/ssl/cert.pem
+    fi
+
+    # 標準の pip3 は自前の古いルート証明書を使うので、上の /etc/ssl/cert.pem を見させる
+    # (CommandLineTools が無いときに /usr/bin/python3 を呼ぶとインストールのダイアログが出るので確かめてから)
+    if xcode-select -p >/dev/null 2>&1; then
+      sitecustomize="$(/usr/bin/python3 -c 'import sysconfig; print(sysconfig.get_path("stdlib"))')/sitecustomize.py"
+      if ! grep -qs PIP_CERT "$sitecustomize"; then
+        echo 'import os; os.environ.setdefault("PIP_CERT", "/etc/ssl/cert.pem")' >> "$sitecustomize"
+        chmod 644 "$sitecustomize"
+      fi
     fi
   '';
 }
