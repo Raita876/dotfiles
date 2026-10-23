@@ -1,0 +1,67 @@
+name: Update flake.lock
+
+on:
+  schedule:
+    # 毎朝 08:00 JST (= 23:00 UTC)。GitHub の混雑で数十分遅れることがある
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    # 設定が aarch64-darwin 専用なので、ビルド確認も Apple Silicon の macOS で行う
+    runs-on: macos-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      SYSTEM_ATTR: .#darwinConfigurations.raita-mba.system
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+
+      # 差分表示の比較元として、更新前の main をビルドしておく
+      - name: Build current system
+        run: nix build "$SYSTEM_ATTR" --out-link old
+
+      - name: Update flake.lock and open PR
+        id: update
+        uses: DeterminateSystems/update-flake-lock@da03c0f078bc4b2c37ee4f7e072d34bf8f188bb3 # v29
+        with:
+          commit-msg: 'flake.lock: update'
+          pr-title: 'flake.lock: update'
+          pr-labels: |
+            dependencies
+            automated
+
+      # PR を GITHUB_TOKEN で作ると他の workflow が起動しないため、ビルド確認もこの job で行う
+      - name: Build updated system
+        if: steps.update.outputs.pull-request-number != ''
+        run: |
+          git fetch origin update_flake_lock_action
+          git checkout FETCH_HEAD
+          nix build "$SYSTEM_ATTR" --out-link new
+
+      - name: Comment package diff
+        if: steps.update.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.update.outputs.pull-request-number }}
+        run: |
+          {
+            echo '## パッケージの差分'
+            echo
+            echo '```'
+            nix run nixpkgs#nvd -- diff ./old ./new
+            echo '```'
+            echo
+            # shellcheck disable=SC2016 # バッククォートは Markdown のコード表記
+            echo '反映するには、マージ後に手元で `git pull && nix run .#switch` を実行する。'
+          } > comment.md
+          # 毎日同じ PR が更新されるので、コメントは増やさず最新の 1 件を書き換える
+          gh pr comment "$PR_NUMBER" --body-file comment.md --edit-last --create-if-none
