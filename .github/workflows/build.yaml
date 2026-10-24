@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # 設定が aarch64-darwin 専用なので、Apple Silicon の macOS でビルドする
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+
+      - name: Check flake
+        run: nix flake check --show-trace
+
+      # switch はシステムを書き換えるので CI では実行せず、その中身のビルドが通るかだけを見る
+      - name: Build system
+        run: nix build .#darwinConfigurations.raita-mba.system --print-build-logs --show-trace
