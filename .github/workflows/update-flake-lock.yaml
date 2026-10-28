@@ -25,9 +25,10 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      # 差分表示の比較元として、更新前の main をビルドしておく
+      # 差分表示の比較元として、更新前の main をビルドしておく。
+      # update-flake-lock は作業ツリーの変更をまとめてコミットするので、out-link はリポジトリの外に置く
       - name: Build current system
-        run: nix build "$SYSTEM_ATTR" --out-link old
+        run: nix build "$SYSTEM_ATTR" --out-link "$RUNNER_TEMP/old"
 
       - name: Update flake.lock and open PR
         id: update
@@ -45,7 +46,7 @@ jobs:
         run: |
           git fetch origin update_flake_lock_action
           git checkout FETCH_HEAD
-          nix build "$SYSTEM_ATTR" --out-link new
+          nix build "$SYSTEM_ATTR" --out-link "$RUNNER_TEMP/new"
 
       - name: Comment package diff
         if: steps.update.outputs.pull-request-number != ''
@@ -57,7 +58,7 @@ jobs:
             echo '## パッケージの差分'
             echo
             echo '```'
-            nix run nixpkgs#nvd -- diff ./old ./new
+            nix run nixpkgs#nvd -- diff "$RUNNER_TEMP/old" "$RUNNER_TEMP/new"
             echo '```'
             echo
             # shellcheck disable=SC2016 # バッククォートは Markdown のコード表記
