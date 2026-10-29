@@ -64,12 +64,12 @@ switch するとこのリポジトリに pre-commit フックが入る (`nix/mod
 
 ## プロジェクトごとの開発環境
 
-デフォルトでは Node.js 24 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
+デフォルトでは Node.js 26 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
 
 ```sh
 cd ~/Repository/<project>
 nix flake init -t ~/Repository/dotfiles#node   # flake.nix と .envrc が置かれる
-# flake.nix の nodejs_24 などを編集
+# flake.nix の nodejs_26 などを編集
 direnv allow                                   # 以後 cd するだけで読み込まれる
 ```
 
