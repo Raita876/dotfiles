@@ -6,7 +6,7 @@
 }:
 let
   claudeConfigDir = "${config.home.homeDirectory}/.claude";
-  inherit (config.lib.dotfiles) link;
+  inherit (config.lib.dotfiles) link agentSkillNames;
   cfg = config.dotfiles.claudeCode;
 
   claude = lib.getExe pkgs.claude-code;
@@ -15,11 +15,6 @@ let
   jsonFormat = pkgs.formats.json { };
 
   settingsFile = jsonFormat.generate "claude-settings.json" config.dotfiles.claudeCode.settings;
-
-  # ~/.claude/skills/synced は claude.ai の同期用なので触らない
-  skillNames = builtins.attrNames (
-    lib.filterAttrs (_: type: type == "directory") (builtins.readDir ../../../../agents/skills)
-  );
 in
 {
   options.dotfiles.claudeCode.settings = lib.mkOption {
@@ -116,10 +111,11 @@ in
     ".claude/agents".source = link "claude/agents";
     ".claude/output-styles".source = link "claude/output-styles";
   }
+  # ~/.claude/skills/synced は claude.ai の同期用なので触らない
   // lib.listToAttrs (
     map (
       name: lib.nameValuePair ".claude/skills/${name}" { source = link "agents/skills/${name}"; }
-    ) skillNames
+    ) agentSkillNames
   )
   // lib.mapAttrs' (
     name: source: lib.nameValuePair ".claude/skills/${name}" { inherit source; }

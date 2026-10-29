@@ -9,6 +9,7 @@
     ./programs/gh.nix
     ./programs/direnv.nix
     ./programs/claude-code.nix
+    ./programs/codex.nix
   ];
 
   home.stateVersion = "26.11";
