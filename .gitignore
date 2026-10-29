@@ -4,3 +4,6 @@ result-*
 .direnv/
 
 cmux/*.bak
+
+# テンプレートにはロックを置かない (nix flake check ./templates/node で作られる)
+templates/*/flake.lock
