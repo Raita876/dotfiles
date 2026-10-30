@@ -22,4 +22,4 @@
 
 - パッケージやツールは必ず Nix で入れ、dotfiles リポジトリ (`Raita876/dotfiles`、手元では `~/Repository/dotfiles`) で管理する
 - `brew install`、`npm install -g`、`pip install`、`go install`、`curl ... | sh` などで直接入れない。nixpkgs に無い GUI アプリは dotfiles の nix-darwin の Homebrew 設定に cask として足す
-- 一時的に使うだけなら `nix shell nixpkgs#<pkg>` や `nix run nixpkgs#<pkg>` を使う
+- 一時的に使うだけなら `, <command>` (comma)、`nix run nixpkgs#<pkg>`、`nix shell nixpkgs#<pkg>` を使う。手順は missing-tools スキルにある
