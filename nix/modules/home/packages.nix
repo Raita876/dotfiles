@@ -6,6 +6,7 @@
     tree
     gitleaks
     git-secrets
+    git-wt
     go-task
     awscli2
     terraform
