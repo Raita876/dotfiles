@@ -7,7 +7,9 @@
 let
   codexConfigDir = "${config.home.homeDirectory}/.codex";
   inherit (config.lib.dotfiles) link agentSkillNames;
+  cfg = config.dotfiles.codex;
 
+  codex = lib.getExe pkgs.codex;
   jq = lib.getExe pkgs.jq;
   toml2json = lib.getExe' pkgs.remarshal "toml2json";
   json2toml = lib.getExe' pkgs.remarshal "json2toml";
@@ -24,6 +26,17 @@ in
     default = { };
     description = "~/.codex/config.toml に switch のたびに書き込む設定。ここに無いキーは Codex が書いた値のまま残る";
   };
+
+  options.dotfiles.codex.plugins = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    description = "<プラグイン名>@<マーケットプレイス名> の一覧。switch 時に未インストールなら追加する (Codex へのログインが必要)";
+  };
+
+  config.dotfiles.codex.plugins = [
+    "codex-security@openai-curated-remote"
+    "engineering-suite-review@openai-curated-remote"
+  ];
 
   # Claude Code の auto モードに寄せる。コマンドはサンドボックス内で動かし、
   # サンドボックスの外に出るとき (ネットワークや書き込み範囲外など) は auto_review のサブエージェントが判断する
@@ -59,7 +72,23 @@ in
     chmod 644 "$CONFIG_FILE"
   '';
 
-  config.home.activation.validateCodexConfig = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
+  # ネットワーク・認証の問題で switch を止めない。次回の switch で再試行する。
+  config.home.activation.installCodexPlugins = lib.hm.dag.entryAfter [ "writeCodexConfig" ] (
+    lib.optionalString (cfg.plugins != [ ]) ''
+      if CODEX_PLUGIN_LIST=$(${codex} plugin list --json); then
+        ${lib.concatMapStrings (plugin: ''
+          if ! ${jq} -e --arg id ${lib.escapeShellArg plugin} \
+              '.installed | any(.pluginId == $id)' <<< "$CODEX_PLUGIN_LIST" >/dev/null; then
+            run ${codex} plugin add ${lib.escapeShellArg plugin} || echo "Codex plugin ${plugin} could not be installed; retry on the next switch" >&2
+          fi
+        '') cfg.plugins}
+      else
+        echo "Could not list Codex plugins; retry on the next switch" >&2
+      fi
+    ''
+  );
+
+  config.home.activation.validateCodexConfig = lib.hm.dag.entryAfter [ "installCodexPlugins" ] ''
     CONFIG_FILE="${codexConfigDir}/config.toml"
 
     echo "Validating Codex config.toml..."
