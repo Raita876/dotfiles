@@ -15,7 +15,32 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      nix: ${{ steps.filter.outputs.nix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # agents/skills はディレクトリ一覧を Nix が readDir で読むので、ビルド結果に影響する
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            nix:
+              - 'flake.nix'
+              - 'flake.lock'
+              - 'nix/**'
+              - 'agents/skills/**'
+              - 'templates/**'
+              - '.github/workflows/build.yaml'
+
   build:
+    needs: changes
+    if: needs.changes.outputs.nix == 'true' || github.event_name == 'workflow_dispatch'
     # 設定が aarch64-darwin 専用なので、Apple Silicon の macOS でビルドする
     runs-on: macos-latest
     timeout-minutes: 90
