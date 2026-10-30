@@ -13,6 +13,12 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # comma が引く nix-index のデータベースを週次ビルド済みのもので配る
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -21,6 +27,7 @@
       nixpkgs,
       nix-darwin,
       home-manager,
+      nix-index-database,
       ...
     }:
     let
@@ -31,9 +38,15 @@
         imports = [
           home-manager.darwinModules.home-manager
           ./nix/modules/darwin
+          { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
         ];
       };
-      homeModules.default = ./nix/modules/home;
+      homeModules.default = {
+        imports = [
+          ./nix/modules/home
+          nix-index-database.homeModules.nix-index
+        ];
+      };
 
       darwinConfigurations.raita-mba = nix-darwin.lib.darwinSystem {
         inherit system;

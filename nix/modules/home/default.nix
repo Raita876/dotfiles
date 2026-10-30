@@ -8,6 +8,7 @@
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/direnv.nix
+    ./programs/comma.nix
     ./programs/claude-code.nix
     ./programs/codex.nix
   ];
