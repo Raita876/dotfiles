@@ -35,8 +35,7 @@ in
 
   config.dotfiles.codex.plugins = [
     "codex-security@openai-curated-remote"
-    # Code Review は利用可能なカタログで識別子を確認できるまで保留。
-    # ローカル差分のレビューには標準の /review が使える。
+    "engineering-suite-review@openai-curated-remote"
   ];
 
   # Claude Code の auto モードに寄せる。コマンドはサンドボックス内で動かし、

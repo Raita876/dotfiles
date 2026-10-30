@@ -141,6 +141,27 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 `dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。
 
+### Codex のレビュー用プラグイン
+
+`dotfiles.codex.plugins` に指定したプラグインは、`switch` 時に未インストールなら追加される。初回は Codex へのログインとネットワーク接続が必要。失敗した場合は次の `switch` で再試行する。インストール済みのものの更新・削除は行わない。
+
+| プラグイン | 用途 |
+|---|---|
+| `codex-security@openai-curated-remote` | 脆弱性の調査と修正方針の確認 |
+| `engineering-suite-review@openai-curated-remote`（表示名: Review、作者: Saul Martí） | 正しさ・可読性・設計・セキュリティ・性能のレビュー |
+
+インストール後は新しいチャットを開始する。普段のレビューでは Review の `code-review-and-quality` スキルを選び、例えば次のように依頼する。
+
+```text
+engineering-suite-review の code-review-and-quality を使って、
+main との差分をレビューしてください。コードは変更せず、
+バグ・テストの不足・エラー処理を優先し、根拠のファイルと行番号を示してください。
+```
+
+Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別スキルで、`docs/agents/issue-tracker.md` と仕様の所在を前提にする。通常の品質レビューは上記の `code-review-and-quality` を使う。ブラウザ検証スキルには別途 Chrome DevTools MCP が必要だが、通常のコードレビューには不要。
+
+候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
+
 ### 端末固有のシェル設定と秘密情報
 
 `zsh/zshrc` は最後に `~/.zshrc.local` を読み込む。職場のツールの初期化 (gcloud の補完、nodenv など) はそこに書く。
