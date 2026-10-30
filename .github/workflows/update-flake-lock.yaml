@@ -25,36 +25,71 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      # 差分表示の比較元として、更新前の main をビルドしておく。
-      # update-flake-lock は作業ツリーの変更をまとめてコミットするので、out-link はリポジトリの外に置く
+      # 比較元として、更新前の main をビルドしておく。
+      # create-pull-request は作業ツリーの変更をコミットするので、out-link はリポジトリの外に置く
       - name: Build current system
         run: nix build "$SYSTEM_ATTR" --out-link "$RUNNER_TEMP/old"
 
-      - name: Update flake.lock and open PR
+      - name: Update flake.lock
         id: update
-        uses: DeterminateSystems/update-flake-lock@da03c0f078bc4b2c37ee4f7e072d34bf8f188bb3 # v29
-        with:
-          commit-msg: 'flake.lock: update'
-          pr-title: 'flake.lock: update'
-          pr-labels: |
-            dependencies
-            automated
-
-      # PR を GITHUB_TOKEN で作ると他の workflow が起動しないため、ビルド確認もこの job で行う
-      - name: Build updated system
-        if: steps.update.outputs.pull-request-number != ''
         run: |
-          git fetch origin update_flake_lock_action
-          git checkout FETCH_HEAD
-          nix build "$SYSTEM_ATTR" --out-link "$RUNNER_TEMP/new"
+          nix flake update 2> "$RUNNER_TEMP/flake-update.log"
+          cat "$RUNNER_TEMP/flake-update.log"
+          if git diff --quiet -- flake.lock; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Comment package diff
-        if: steps.update.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.update.outputs.pull-request-number }}
+      - name: Build updated system
+        if: steps.update.outputs.updated == 'true'
+        run: nix build "$SYSTEM_ATTR" --out-link "$RUNNER_TEMP/new"
+
+      # nixpkgs のコミットが変わるだけでも、ソースや manual などコミット番号を含むパスは必ず変わる。
+      # それ以外のパスが変わったとき (バージョンの変化だけでなく、同じバージョンへのパッチも含む) だけ PR を作る
+      - name: Compare closures
+        id: compare
+        if: steps.update.outputs.updated == 'true'
+        run: |
+          comm -3 \
+            <(nix-store --query --requisites "$RUNNER_TEMP/old" | sort) \
+            <(nix-store --query --requisites "$RUNNER_TEMP/new" | sort) \
+            | tr -d '\t' \
+            | sed -E 's|^/nix/store/[a-z0-9]{32}-||' \
+            | sort -u \
+            | grep -v -x -E 'source|etc|etc-registry\.json|darwin-version\.json|darwin-help|darwin-manpages|darwin-manual-html|system-path|system-applications|darwin-system-.*' \
+            > "$RUNNER_TEMP/changed.txt" || true
+
+          if [ -s "$RUNNER_TEMP/changed.txt" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo '## 判定'
+            echo
+            if [ -s "$RUNNER_TEMP/changed.txt" ]; then
+              echo 'パッケージに変化があるので PR を作る。変わったパス:'
+              echo
+              echo '```'
+              cat "$RUNNER_TEMP/changed.txt"
+              echo '```'
+            else
+              echo 'パッケージに変化がないので PR は作らない。'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write PR body
+        if: steps.compare.outputs.changed == 'true'
         run: |
           {
+            echo '## flake.lock の更新'
+            echo
+            echo '```'
+            grep -E '^(•|  )' "$RUNNER_TEMP/flake-update.log" || true
+            echo '```'
+            echo
             echo '## パッケージの差分'
             echo
             echo '```'
@@ -63,6 +98,18 @@ jobs:
             echo
             # shellcheck disable=SC2016 # バッククォートは Markdown のコード表記
             echo '反映するには、マージ後に手元で `git pull && nix run .#switch` を実行する。'
-          } > comment.md
-          # 毎日同じ PR が更新されるので、コメントは増やさず最新の 1 件を書き換える
-          gh pr comment "$PR_NUMBER" --body-file comment.md --edit-last --create-if-none
+          } > "$RUNNER_TEMP/pr-body.md"
+
+      # PR を GITHUB_TOKEN で作ると他の workflow が起動しないため、ビルド確認は上のステップで済ませている
+      - name: Open PR
+        if: steps.compare.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: update_flake_lock_action
+          add-paths: flake.lock
+          commit-message: 'flake.lock: update'
+          title: 'flake.lock: update'
+          body-path: ${{ runner.temp }}/pr-body.md
+          labels: |
+            dependencies
+            automated
