@@ -12,6 +12,8 @@ in
     enable = true;
     mutableSettings = true;
     extraPackages = [ pkgs.nodejs ];
+    settings.defaultProvider = "openai";
+    settings.defaultModel = "gpt-6.1-sol";
     settings.packages = [
       "${piExtensions}/node_modules/pi-web-access"
       "${piExtensions}/node_modules/billion-context"
