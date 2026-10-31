@@ -18,6 +18,7 @@
 
     casks = [
       "ghostty"
+      "herdr-app"
       "google-chrome"
       "notion"
       "zoom"
