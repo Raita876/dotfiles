@@ -36,7 +36,6 @@
         ];
         home-manager.sharedModules = [
           omp.homeManagerModules.default
-          { programs.omp.enable = true; }
         ];
       };
       homeModules.default = ./nix/modules/home;
