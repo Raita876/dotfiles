@@ -14,6 +14,18 @@ in
     extraPackages = [ pkgs.nodejs ];
     settings.defaultProvider = "openai";
     settings.defaultModel = "gpt-6.1-sol";
+    keybindings = {
+      "tui.editor.cursorLineStart" = [
+        "home"
+        "ctrl+a"
+        "super+shift+left"
+      ];
+      "tui.editor.cursorLineEnd" = [
+        "end"
+        "ctrl+e"
+        "super+shift+right"
+      ];
+    };
     settings.packages = [
       "${piExtensions}/node_modules/pi-web-access"
       "${piExtensions}/node_modules/billion-context"
