@@ -14,16 +14,21 @@ const { loadExtensions } = await load("extensions/loader.js");
 const temporary = mkdtempSync(join(tmpdir(), "pi-review-smoke-"));
 
 try {
-  const { skills, diagnostics } = loadSkillsFromDir({ dir: join(root, "skills"), source: "user" });
+  const skillRoot = resolve(root, "../agents/skills/pr-review");
+  const { skills, diagnostics } = loadSkillsFromDir({ dir: skillRoot, source: "user" });
   assert.deepEqual(diagnostics, []);
   assert.equal(skills.length, 1);
   assert.equal(skills[0].name, "pr-review");
-  const skill = readFileSync(join(root, "skills/pr-review/SKILL.md"), "utf8");
-  for (const name of ["scope", "report", "code", "tests", "errors", "comments", "types", "simplify"]) {
+  const skill = readFileSync(join(skillRoot, "SKILL.md"), "utf8");
+  for (const name of ["execution", "scope", "report", "code", "tests", "errors", "comments", "types", "simplify"]) {
     assert.ok(skill.includes(`references/${name}.md`));
-    assert.ok(readFileSync(join(root, `skills/pr-review/references/${name}.md`), "utf8").trim());
+    assert.ok(readFileSync(join(skillRoot, `references/${name}.md`), "utf8").trim());
   }
-  assert.ok(skill.includes('agent: "reviewer"'));
+  assert.ok(!skill.includes("acp_delegate"), "Main workflow must not require Pi delegation");
+  const execution = readFileSync(join(skillRoot, "references/execution.md"), "utf8");
+  assert.ok(execution.includes('agent: "reviewer"'));
+  assert.ok(execution.includes("Claude Code / Codex"));
+  assert.ok(execution.includes("## 委譲ツールがない場合"));
 
   const prompts = loadPromptTemplates({
     cwd: temporary,
@@ -35,7 +40,7 @@ try {
   assert.deepEqual(prompts.templates.map((item) => item.name), ["review-pr"]);
   for (const args of ["", "tests errors --base main sequential", "all simplify --pr 123 parallel"]) {
     const expanded = expandPromptTemplate(`/review-pr${args ? ` ${args}` : ""}`, prompts.templates);
-    assert.ok(expanded.includes("~/.pi/agent/skills/pr-review/SKILL.md"));
+    assert.ok(expanded.includes("~/.agents/skills/pr-review/SKILL.md"));
     assert.ok(!expanded.includes("$ARGUMENTS"));
     assert.ok(expanded.includes(`<review-options>\n${args}\n</review-options>`));
   }
@@ -57,7 +62,7 @@ try {
     assert.ok(commands.has(command), `Missing command: ${command}`);
   }
   assert.ok(!commands.has("review-pr"));
-  console.log(`OK: skill, 8 references, 3 prompt expansions, policy injection, ${commands.size} Piolium commands`);
+  console.log(`OK: shared skill, 9 references, 3 prompt expansions, policy injection, ${commands.size} Piolium commands`);
   console.log("No audit commands or model requests were executed.");
 } finally {
   rmSync(temporary, { recursive: true, force: true });

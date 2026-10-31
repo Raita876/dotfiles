@@ -27,7 +27,6 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `agents/shared/` | `~/.claude/shared` |
 | `agents/skills/<name>/` | `~/.claude/skills/<name>`、`~/.agents/skills/<name>` (Codex と pi が読む) |
 | `claude/{commands,agents,output-styles}/` | `~/.claude/{commands,agents,output-styles}` |
-| `pi/skills/pr-review/` | `~/.pi/agent/skills/pr-review` (Pi 専用) |
 | `pi/prompts/review-pr.md` | `~/.pi/agent/prompts/review-pr.md` |
 
 ## 新しい Mac でのセットアップ
@@ -164,7 +163,7 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
 
-### Pi のセキュリティ監査と PR レビュー
+### Pi のセキュリティ監査
 
 `nix run .#switch` 後に新しい Pi を起動する。Markdown だけの変更は `/reload` で読み直せる。Nix の package と環境変数の変更には switch とプロセスの再起動が必要。
 
@@ -190,9 +189,27 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 公開版の optional peer は Pi `^0.74.0` を宣言しており、Pi 1.4.0 は宣言範囲外。Pi 1.4.0 で拡張ロードとコマンド登録を検証しているが、全監査フローの互換性までは保証しない。
 
-#### PR レビュー
+### 共通の PR レビュー
 
-`/review-pr` は prompt template、`pr-review` は専門指示を持つ skill。既存の `billion-context` の `acp_delegate` から、組み込み `reviewer` に観点別の自己完結した依頼を渡す。別のサブエージェント拡張や Claude の agent 定義は追加しない。レビュー指示は独自に記述している。
+`agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。
+
+各エージェントで `pr-review` skill を選択するか、次のように依頼する。skill の呼び出し UI・構文は各 CLI に従う。
+
+```text
+pr-review skill を使って、main との差分を tests と errors の観点でレビューしてください。
+```
+
+レビュー観点・範囲・報告形式は共通にし、実行方式だけを `references/execution.md` に分離している。
+
+| 環境 | 実行方式 |
+|---|---|
+| Pi + billion-context | `acp_delegate` の既存 `reviewer` に観点別の依頼を渡す |
+| Claude Code / Codex | 現在公開されているネイティブのサブエージェントツールを、そのスキーマに従って利用 |
+| 委譲ツールがない環境 | 単独で観点別に逐次レビューすることを明示。並列・独立した検証を明示要求された場合は切り替え前に確認 |
+
+新しいサブエージェント拡張や名前付き agent 定義は追加しない。CLI 名だけで委譲機能の有効・無効を決めず、実際に使えるツールを確認する。単独実行を独立した複数 agent の検証として扱わない。
+
+Pi には薄い入口として `/review-pr` prompt template も用意する。以下は **Pi での呼び出し例**（他の CLI に同名コマンドがあるとは限らない）。
 
 ```text
 /review-pr
@@ -209,9 +226,9 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 | `--pr <number>` | `gh` で取得した PR 差分。checkout や投稿はしない。認証済みの `gh` が必要 |
 | `code` / `tests` / `errors` / `comments` / `types` | 指定観点でレビュー。省略または `all` はこの5観点から該当するものを選択 |
 | `simplify` | 明示指定時のみ、振る舞いを保つ簡素化を提案。編集はしない |
-| `parallel` / `sequential` | 最大3件ずつの並列（既定）/ 1件ずつの逐次実行 |
+| `parallel` / `sequential` | 委譲可能な環境では最大3件ずつの並列（既定）/ 1件ずつの逐次実行。委譲不可時の扱いは上記のとおり |
 
-対象 SHA と差分を固定し、指摘を親が検証・重複排除して日本語で報告する。失敗した観点や未検証部分は別記する。コード編集、テスト実行、GitHub への投稿は行わない。実行が必要なら別途依頼する。これも指示による運用であり、読み取り専用の OS サンドボックスではない。
+対象 SHA と差分を固定し、指摘をメイン agent が検証・重複排除して日本語で報告する。失敗した観点や未検証部分は別記する。コード編集、テスト実行、GitHub への投稿は行わない。実行が必要なら別途依頼する。これも指示による運用であり、読み取り専用の OS サンドボックスではない。
 
 有料モデル呼び出しなしのリソース検証は、Pi package のルート（`dist/` を含む場所）と Nix ビルド済みのポリシー適用済み Piolium package のルートを指定する。
 
@@ -219,7 +236,7 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 node pi/tests/smoke.mjs "$PI_PACKAGE_ROOT" "$PATCHED_PIOLIUM_PACKAGE_ROOT"
 ```
 
-skill 検出、参照先、prompt の引数展開、ポリシー注入、Piolium のロード・コマンド登録を確認する。監査コマンドや `session.prompt` は呼ばない。
+共通 skill の Pi での検出、9つの参照先、prompt の引数展開、ポリシー注入、Piolium のロード・コマンド登録を確認する。監査コマンドや `session.prompt` は呼ばない。Claude Code・Codex の実際のモデル実行・ネイティブ委譲の動作は、このテストの検証範囲に含まない。
 
 ### 端末固有のシェル設定と秘密情報
 

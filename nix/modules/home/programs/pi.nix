@@ -88,7 +88,6 @@ in
   # スキルは pi が ~/.agents/skills も読むので、codex.nix が置いたものをそのまま使う
   home.file = {
     ".pi/agent/AGENTS.md".source = link "agents/AGENTS.md";
-    ".pi/agent/skills/pr-review".source = link "pi/skills/pr-review";
     ".pi/agent/prompts/review-pr.md".source = link "pi/prompts/review-pr.md";
   };
 }
