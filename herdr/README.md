@@ -42,6 +42,6 @@ Herdr は terminal セクションが global セクションより優先され�
 ## 適用
 
 PR のマージ後、通常の dotfiles ディレクトリで `nix run .#switch` を実行する。
-初回は既存の `~/.config/herdr-app/keys.json` を退避する。Home Manager は既存の通常ファイルを上書きしない。
+既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
 `keys.json` だけを symlink し、セッション・設定・レイアウト・mods は Herdr 側に残す。
-キー設定はライブ反映される。アプリの設定リセットで symlink が置き換わったら、生成されたファイルを退避して `switch` し直す。
+キー設定はライブ反映される。アプリの設定リセットで symlink が置き換わったら、退避先の重複に注意して `switch` し直す。
