@@ -12,7 +12,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask と VS Code 拡張機能) |
 | `nix/modules/home/` | home-manager: 設定を持たない CLI ツール (`packages.nix`) |
 | `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code、Codex、pi)。パッケージ、symlink、設定を 1 ファイルにまとめる |
-| `zsh/`, `starship/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `zsh/`, `starship/`, `cmux/`, `vscode/`, `claude/`, `agents/`, `pi/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `nix/apps.nix` | `nix run .#switch` などの操作 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
@@ -27,6 +27,8 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `agents/shared/` | `~/.claude/shared` |
 | `agents/skills/<name>/` | `~/.claude/skills/<name>`、`~/.agents/skills/<name>` (Codex と pi が読む) |
 | `claude/{commands,agents,output-styles}/` | `~/.claude/{commands,agents,output-styles}` |
+| `pi/skills/pr-review/` | `~/.pi/agent/skills/pr-review` (Pi 専用) |
+| `pi/prompts/review-pr.md` | `~/.pi/agent/prompts/review-pr.md` |
 
 ## 新しい Mac でのセットアップ
 
@@ -161,6 +163,63 @@ main との差分をレビューしてください。コードは変更せず、
 Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別スキルで、`docs/agents/issue-tracker.md` と仕様の所在を前提にする。通常の品質レビューは上記の `code-review-and-quality` を使う。ブラウザ検証スキルには別途 Chrome DevTools MCP が必要だが、通常のコードレビューには不要。
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
+
+### Pi のセキュリティ監査と PR レビュー
+
+`nix run .#switch` 後に新しい Pi を起動する。Markdown だけの変更は `/reload` で読み直せる。Nix の package と環境変数の変更には switch とプロセスの再起動が必要。
+
+#### Piolium
+
+[`@vigolium/piolium`](https://github.com/vigolium/piolium) 0.0.15 を Nix の npm lock で固定し、既存 Pi の拡張として読み込む。別の `piolium` CLI や Bun、Pi 本体の重複インストールは行わない。Claude Security の内容を移植するものではない。
+
+```text
+/piolium-help
+/piolium-lite
+/piolium-balanced
+/piolium-deep
+/piolium-diff
+```
+
+最初に help で対象・モードを確認する。実監査はモデル呼び出し・費用を伴い、長時間かかることがある。成果物は対象 repo の `piolium/` に出力される。`/piolium-smoke` もモデルを使うため、無料のロードテストではない。
+
+- 初期値は `PIOLIUM_MAX_AGENTS=1`。これは Piolium 内の並列数で、`acp_delegate` と共通の上限ではない。モデルも親と必ず同じとは限らない。
+- `PIOLIUM_VERTEX=0` で Vertex provider の自動有効化を止める。Vertex 用 SDK は同梱しない。
+- 子セッションは親の `AGENTS.md` や拡張を読み込まないため、`pi/piolium-policy.md` を全 `runAgent` 呼び出しのシステム指示へ前置する Nix パッチを加えている。非 Nix インストールと監査対象外のキャッシュ削除などを禁止し、不足ツールは未検証として報告させる。上流の該当コードが変わるとパッチはビルド時に失敗する。
+- **このポリシーと Piolium の guard は OS の隔離境界ではない。** テスト・PoC では対象コードを実行し、ファイル変更やネットワークアクセスが発生し得る。信頼できる repo か、必要な資格情報だけを渡した VM・コンテナなどで利用する。ホスト全体へのアクセスを許したまま未信頼コードを監査しない。
+- Semgrep 等は自動導入しない。必要なツールは対象プロジェクトの Nix devShell で用意する。不足・未実行の検査を「問題なし」と解釈しない。
+
+公開版の optional peer は Pi `^0.74.0` を宣言しており、Pi 1.4.0 は宣言範囲外。Pi 1.4.0 で拡張ロードとコマンド登録を検証しているが、全監査フローの互換性までは保証しない。
+
+#### PR レビュー
+
+`/review-pr` は prompt template、`pr-review` は専門指示を持つ skill。既存の `billion-context` の `acp_delegate` から、組み込み `reviewer` に観点別の自己完結した依頼を渡す。別のサブエージェント拡張や Claude の agent 定義は追加しない。レビュー指示は独自に記述している。
+
+```text
+/review-pr
+/review-pr --base main
+/review-pr tests errors --base origin/main sequential
+/review-pr all simplify --pr 123 parallel
+/skill:pr-review code tests --base main
+```
+
+| 指定 | 対象 |
+|---|---|
+| 範囲の省略 | ステージ済み・未ステージ・未追跡を含む作業ツリーの最終状態 |
+| `--base <ref>` | merge-base から HEAD のコミット済み差分。ローカル変更は除外 |
+| `--pr <number>` | `gh` で取得した PR 差分。checkout や投稿はしない。認証済みの `gh` が必要 |
+| `code` / `tests` / `errors` / `comments` / `types` | 指定観点でレビュー。省略または `all` はこの5観点から該当するものを選択 |
+| `simplify` | 明示指定時のみ、振る舞いを保つ簡素化を提案。編集はしない |
+| `parallel` / `sequential` | 最大3件ずつの並列（既定）/ 1件ずつの逐次実行 |
+
+対象 SHA と差分を固定し、指摘を親が検証・重複排除して日本語で報告する。失敗した観点や未検証部分は別記する。コード編集、テスト実行、GitHub への投稿は行わない。実行が必要なら別途依頼する。これも指示による運用であり、読み取り専用の OS サンドボックスではない。
+
+有料モデル呼び出しなしのリソース検証は、Pi package のルート（`dist/` を含む場所）と Nix ビルド済みのポリシー適用済み Piolium package のルートを指定する。
+
+```sh
+node pi/tests/smoke.mjs "$PI_PACKAGE_ROOT" "$PATCHED_PIOLIUM_PACKAGE_ROOT"
+```
+
+skill 検出、参照先、prompt の引数展開、ポリシー注入、Piolium のロード・コマンド登録を確認する。監査コマンドや `session.prompt` は呼ばない。
 
 ### 端末固有のシェル設定と秘密情報
 

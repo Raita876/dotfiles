@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (config.lib.dotfiles) link;
   piExtensions = pkgs.importNpmLock.buildNodeModules {
@@ -6,6 +11,19 @@ let
     nodejs = pkgs.nodejs;
     derivationArgs.npmFlags = [ "--legacy-peer-deps" ];
   };
+  # 子セッションは AGENTS.md を読まないため、Nix 管理方針をシステム指示に含める。
+  piolium = pkgs.runCommand "piolium-with-local-policy" { } ''
+    mkdir -p "$out"
+    cp -R ${piExtensions}/node_modules/@vigolium/piolium/. "$out/"
+    chmod -R u+w "$out"
+    substituteInPlace "$out/extensions/piolium/agent-runner.ts" \
+      --replace-fail 'const composedSystemPrompt = ' \
+      ${lib.escapeShellArg (
+        "const composedSystemPrompt = "
+        + builtins.toJSON (builtins.readFile ../../../../pi/piolium-policy.md)
+        + ''+ "\n\n" + ''
+      )}
+  '';
 in
 {
   programs.pi-coding-agent = {
@@ -34,6 +52,7 @@ in
       "${piExtensions}/node_modules/@juicesharp/rpiv-ask-user-question"
       "${piExtensions}/node_modules/@juicesharp/rpiv-todo"
       "${piExtensions}/node_modules/pi-open-tui"
+      "${piolium}"
     ];
   };
 
@@ -41,6 +60,8 @@ in
   home.sessionVariables = {
     ACP_AUTO_UPDATE = "0";
     BILI_ADVISORY_CHECK = "0";
+    PIOLIUM_VERTEX = "0";
+    PIOLIUM_MAX_AGENTS = "1";
   };
 
   home.file.".pi/agent/lsp.json".source = (pkgs.formats.json { }).generate "pi-lsp.json" {
@@ -65,5 +86,9 @@ in
 
   # context オプションだと store へのコピーになり、編集のたびに switch が要るので、自前で symlink する。
   # スキルは pi が ~/.agents/skills も読むので、codex.nix が置いたものをそのまま使う
-  home.file.".pi/agent/AGENTS.md".source = link "agents/AGENTS.md";
+  home.file = {
+    ".pi/agent/AGENTS.md".source = link "agents/AGENTS.md";
+    ".pi/agent/skills/pr-review".source = link "pi/skills/pr-review";
+    ".pi/agent/prompts/review-pr.md".source = link "pi/prompts/review-pr.md";
+  };
 }

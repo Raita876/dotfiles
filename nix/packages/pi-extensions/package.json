@@ -5,6 +5,7 @@
   "dependencies": {
     "@juicesharp/rpiv-ask-user-question": "2.15.0",
     "@juicesharp/rpiv-todo": "2.15.0",
+    "@vigolium/piolium": "0.0.15",
     "billion-context": "0.1.209",
     "pi-btw": "0.8.0",
     "pi-lsp": "0.1.7",
