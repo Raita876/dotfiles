@@ -27,7 +27,6 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `agents/shared/` | `~/.claude/shared` |
 | `agents/skills/<name>/` | `~/.claude/skills/<name>`、`~/.agents/skills/<name>` (Codex と pi が読む) |
 | `claude/{commands,agents,output-styles}/` | `~/.claude/{commands,agents,output-styles}` |
-| `pi/prompts/review-pr.md` | `~/.pi/agent/prompts/review-pr.md` |
 
 ## 新しい Mac でのセットアップ
 
@@ -209,13 +208,9 @@ pr-review skill を使って、main との差分を tests と errors の観点�
 
 新しいサブエージェント拡張や名前付き agent 定義は追加しない。CLI 名だけで委譲機能の有効・無効を決めず、実際に使えるツールを確認する。単独実行を独立した複数 agent の検証として扱わない。
 
-Pi には薄い入口として `/review-pr` prompt template も用意する。以下は **Pi での呼び出し例**（他の CLI に同名コマンドがあるとは限らない）。
+Pi では標準の skill 呼び出しを使う。
 
 ```text
-/review-pr
-/review-pr --base main
-/review-pr tests errors --base origin/main sequential
-/review-pr all simplify --pr 123 parallel
 /skill:pr-review code tests --base main
 ```
 
@@ -229,14 +224,6 @@ Pi には薄い入口として `/review-pr` prompt template も用意する。�
 | `parallel` / `sequential` | 委譲可能な環境では最大3件ずつの並列（既定）/ 1件ずつの逐次実行。委譲不可時の扱いは上記のとおり |
 
 対象 SHA と差分を固定し、指摘をメイン agent が検証・重複排除して日本語で報告する。失敗した観点や未検証部分は別記する。コード編集、テスト実行、GitHub への投稿は行わない。実行が必要なら別途依頼する。これも指示による運用であり、読み取り専用の OS サンドボックスではない。
-
-有料モデル呼び出しなしのリソース検証は、Pi package のルート（`dist/` を含む場所）と Nix ビルド済みのポリシー適用済み Piolium package のルートを指定する。
-
-```sh
-node pi/tests/smoke.mjs "$PI_PACKAGE_ROOT" "$PATCHED_PIOLIUM_PACKAGE_ROOT"
-```
-
-共通 skill の Pi での検出、9つの参照先、prompt の引数展開、ポリシー注入、Piolium のロード・コマンド登録を確認する。監査コマンドや `session.prompt` は呼ばない。Claude Code・Codex の実際のモデル実行・ネイティブ委譲の動作は、このテストの検証範囲に含まない。
 
 ### 端末固有のシェル設定と秘密情報
 

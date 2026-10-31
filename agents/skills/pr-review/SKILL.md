@@ -17,7 +17,7 @@ compatibility: A coding agent with file-reading and command-execution tools, plu
 
 ## 1. オプションを解釈する
 
-この skill を呼び出した依頼（自然言語、各エージェントの skill 選択、Pi の `/review-pr` など）から次を読む。不明な指定や衝突は開始前に確認する。引数を eval したり、未検証のままシェルに埋め込まない。
+この skill を呼び出した依頼（自然言語、各エージェントの skill 選択など）から次を読む。不明な指定や衝突は開始前に確認する。引数を eval したり、未検証のままシェルに埋め込まない。
 
 - 観点: `code`、`tests`、`errors`、`comments`、`types`、`simplify`。複数指定可。省略または `all` は最初の5観点から該当するものを選ぶ。`simplify` は明示指定時だけ追加する。
 - 範囲: 省略は作業ツリー。`--base <ref>` はブランチ差分。`--pr <number>` は正の整数の GitHub PR 番号。`--base` と `--pr` は併用しない。
