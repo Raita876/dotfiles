@@ -11,7 +11,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `nix/modules/darwin/programs/<tool>.nix` | cask と設定ファイルの両方を持つツール (VS Code、cmux)。cask、拡張機能、symlink を 1 ファイルにまとめる |
 | `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask と VS Code 拡張機能) |
 | `nix/modules/home/` | home-manager: 設定を持たない CLI ツール (`packages.nix`) |
-| `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code)。パッケージ、symlink、設定を 1 ファイルにまとめる |
+| `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code、Codex、pi)。パッケージ、symlink、設定を 1 ファイルにまとめる |
 | `zsh/`, `starship/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `nix/apps.nix` | `nix run .#switch` などの操作 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
@@ -23,9 +23,9 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `starship/starship.toml` | `~/.config/starship.toml` |
 | `cmux/` | `~/.config/cmux` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` |
-| `agents/AGENTS.md` | `~/.claude/CLAUDE.md` |
+| `agents/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.codex/AGENTS.md`、`~/.pi/agent/AGENTS.md` |
 | `agents/shared/` | `~/.claude/shared` |
-| `agents/skills/<name>/` | `~/.claude/skills/<name>` |
+| `agents/skills/<name>/` | `~/.claude/skills/<name>`、`~/.agents/skills/<name>` (Codex と pi が読む) |
 | `claude/{commands,agents,output-styles}/` | `~/.claude/{commands,agents,output-styles}` |
 
 ## 新しい Mac でのセットアップ
