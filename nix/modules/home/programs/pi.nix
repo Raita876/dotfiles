@@ -16,6 +16,9 @@ in
       "${piExtensions}/node_modules/pi-web-access"
       "${piExtensions}/node_modules/billion-context"
       "${piExtensions}/node_modules/pi-btw"
+      "${piExtensions}/node_modules/pi-lsp"
+      "${piExtensions}/node_modules/@juicesharp/rpiv-ask-user-question"
+      "${piExtensions}/node_modules/@juicesharp/rpiv-todo"
     ];
   };
 
@@ -23,6 +26,26 @@ in
   home.sessionVariables = {
     ACP_AUTO_UPDATE = "0";
     BILI_ADVISORY_CHECK = "0";
+  };
+
+  home.file.".pi/agent/lsp.json".source = (pkgs.formats.json { }).generate "pi-lsp.json" {
+    version = 1;
+    servers = [
+      {
+        id = "nixd";
+        enabled = true;
+        include = [ "**/*.nix" ];
+        rootMarkers = [
+          "flake.nix"
+          "default.nix"
+          "shell.nix"
+        ];
+        bin = "${pkgs.nixd}/bin/nixd";
+        args = [ ];
+        cwd = "{root}";
+        languageIdByExtension.".nix" = "nix";
+      }
+    ];
   };
 
   # context オプションだと store へのコピーになり、編集のたびに switch が要るので、自前で symlink する。
