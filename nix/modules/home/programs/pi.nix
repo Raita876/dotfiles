@@ -2,7 +2,7 @@
 let
   inherit (config.lib.dotfiles) link;
   piExtensions = pkgs.importNpmLock.buildNodeModules {
-    npmRoot = ../../../packages/pi-web-access;
+    npmRoot = ../../../packages/pi-extensions;
     nodejs = pkgs.nodejs;
     derivationArgs.npmFlags = [ "--legacy-peer-deps" ];
   };
@@ -11,7 +11,19 @@ in
   programs.pi-coding-agent = {
     enable = true;
     mutableSettings = true;
-    settings.packages = [ "${piExtensions}/node_modules/pi-web-access" ];
+    settings.packages = [
+      "${piExtensions}/node_modules/pi-web-access"
+      {
+        source = "${piExtensions}/node_modules/mitsupi";
+        extensions = [
+          "extensions/btw.ts"
+          "extensions/review.ts"
+        ];
+        skills = [ ];
+        prompts = [ ];
+        themes = [ ];
+      }
+    ];
   };
 
   # context オプションだと store へのコピーになり、編集のたびに switch が要るので、自前で symlink する。

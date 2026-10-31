@@ -1,0 +1,9 @@
+{
+  "name": "pi-extensions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "pi-web-access": "0.46.0",
+    "mitsupi": "https://github.com/mitsuhiko/agent-stuff/archive/0865c849befd2021490679f96a8dee58c84ac857.tar.gz"
+  }
+}
