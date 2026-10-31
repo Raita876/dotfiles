@@ -2,7 +2,7 @@
 let
   inherit (config.lib.dotfiles) link;
   piExtensions = pkgs.importNpmLock.buildNodeModules {
-    npmRoot = ../../../packages/pi-web-access;
+    npmRoot = ../../../packages/pi-extensions;
     nodejs = pkgs.nodejs;
     derivationArgs.npmFlags = [ "--legacy-peer-deps" ];
   };
@@ -11,7 +11,18 @@ in
   programs.pi-coding-agent = {
     enable = true;
     mutableSettings = true;
-    settings.packages = [ "${piExtensions}/node_modules/pi-web-access" ];
+    extraPackages = [ pkgs.nodejs ];
+    settings.packages = [
+      "${piExtensions}/node_modules/pi-web-access"
+      "${piExtensions}/node_modules/billion-context"
+      "${piExtensions}/node_modules/pi-btw"
+    ];
+  };
+
+  # 更新は Nix の lock に集約し、拡張による自己更新を防ぐ。
+  home.sessionVariables = {
+    ACP_AUTO_UPDATE = "0";
+    BILI_ADVISORY_CHECK = "0";
   };
 
   # context オプションだと store へのコピーになり、編集のたびに switch が要るので、自前で symlink する。
