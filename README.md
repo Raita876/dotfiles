@@ -8,11 +8,11 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 |---|---|
 | `flake.nix` | inputs、`darwinConfigurations."raita-mba"`、外部向けの `darwinModules.default` / `homeModules.default` |
 | `nix/modules/darwin/` | 端末ごとの値の定義 (`options.nix`)、macOS のシステム設定 (`system.nix`)、Homebrew の共通設定と単体の cask (`homebrew.nix`)、home-manager の読み込み (`home-manager.nix`) |
-| `nix/modules/darwin/programs/<tool>.nix` | cask と設定ファイルの両方を持つツール (VS Code、cmux)。cask、拡張機能、symlink を 1 ファイルにまとめる |
+| `nix/modules/darwin/programs/<tool>.nix` | cask と設定ファイルの両方を持つツール (VS Code、cmux、Herdr)。cask、拡張機能、symlink を 1 ファイルにまとめる |
 | `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask と VS Code 拡張機能) |
 | `nix/modules/home/` | home-manager: 設定を持たない CLI ツール (`packages.nix`) |
 | `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code、Codex、pi)。パッケージ、symlink、設定を 1 ファイルにまとめる |
-| `zsh/`, `starship/`, `cmux/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `zsh/`, `starship/`, `cmux/`, `herdr/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `nix/apps.nix` | `nix run .#switch` などの操作 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
@@ -22,6 +22,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `zsh/zprofile` | `~/.zprofile` |
 | `starship/starship.toml` | `~/.config/starship.toml` |
 | `cmux/` | `~/.config/cmux` |
+| `herdr/keys.json` | `~/.config/herdr-app/keys.json` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` |
 | `agents/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.codex/AGENTS.md`、`~/.pi/agent/AGENTS.md` |
 | `agents/shared/` | `~/.claude/shared` |
@@ -61,6 +62,14 @@ nix fmt                           # .nix ファイルを整形
 新しく追加したファイルは `git add` してから適用する (flake は git 管理下のファイルしか見ない)。
 
 switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
+
+### Herdr のショートカット
+
+Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
+設定以外のセッション・レイアウト・mods は共有しない。
+
+初回の `switch` 前に、既存の `~/.config/herdr-app/keys.json` が通常ファイルなら別名に退避する (Home Manager は既存ファイルを上書きしない)。PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。
+以後キー設定の編集は即反映される。Herdr の設定リセットで symlink が置き換わった場合も、生成された `keys.json` を退避してから再度 `switch` する。
 
 ## プロジェクトごとの開発環境
 
@@ -121,7 +130,7 @@ direnv allow                                   # 以後 cd するだけで読み
 | 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*` | そのまま書けば上書きされる |
 | リスト | `home.packages`、`homebrew.brews` / `casks` / `vscode`、`dotfiles.claudeCode.plugins`、`dotfiles.claudeCode.extraSkills` (名前 → ディレクトリ)、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
 | 構成の前提 | `system.stateVersion`、`home.stateVersion`、`home-manager.useGlobalPkgs` / `useUserPackages`、`programs.zsh.enable` など | 違う値を書くとエラーになる。変えるなら `lib.mkForce` (基本は変えない) |
-| 共通のファイル | zshrc、zprofile、starship、cmux、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
+| 共通のファイル | zshrc、zprofile、starship、cmux、Herdr の keys.json、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
 
 home-manager 側の値は `home-manager.users."<ユーザー名>"` の下に書く。例えば Claude Code の権限モードを変えるなら:
 

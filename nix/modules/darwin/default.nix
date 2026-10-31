@@ -15,6 +15,7 @@ in
     ./home-manager.nix
     ./programs/vscode.nix
     ./programs/cmux.nix
+    ./programs/herdr.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
