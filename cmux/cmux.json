@@ -3,9 +3,9 @@
   "schemaVersion": 1,
 
   "actions": {
-    "home-claude": {
+    "home-agent": {
       "type": "workspace",
-      "title": "Home + Claude",
+      "title": "Home + Agent",
       // cmux 0.65.1 の不具合回避: ⌘N が ui.newWorkspace.action を無視するため、⌘N をこのアクションに直接割り当てる (upstream で修正されたら外す)
       "shortcut": "cmd+n",
       "restart": "new",
@@ -15,7 +15,7 @@
         "layout": {
           "pane": {
             "surfaces": [
-              { "type": "terminal", "name": "Claude", "command": "claude", "focus": true }
+              { "type": "terminal", "name": "Agent", "command": "cmux-agent", "focus": true }
             ]
           }
         }
@@ -24,7 +24,7 @@
   },
   "ui": {
     "newWorkspace": {
-      "action": "home-claude"
+      "action": "home-agent"
     }
   },
 
