@@ -6,6 +6,7 @@
 }:
 let
   agents = {
+    pi = pkgs.pi-coding-agent;
     claude = pkgs.claude-code;
     inherit (pkgs) codex;
   };
@@ -18,7 +19,7 @@ in
 {
   options.dotfiles.cmux.agent = lib.mkOption {
     type = lib.types.enum (builtins.attrNames agents);
-    default = "claude";
+    default = "pi";
     description = "cmux の新しいワークスペースで起動するコーディングエージェント";
   };
 
