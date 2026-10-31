@@ -2,7 +2,6 @@
   dotfiles = {
     username = "raita";
     hostname = "raita-mba";
-    cmux.agent = "codex";
   };
 
   homebrew = {
