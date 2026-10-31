@@ -6,14 +6,15 @@
 }:
 let
   agents = {
-    pi = pkgs.pi-coding-agent;
-    claude = pkgs.claude-code;
-    inherit (pkgs) codex;
+    pi = "pi";
+    claude = "claude";
+    codex = "codex";
   };
 
   # cmux.json はリポジトリへの symlink で端末ごとに書き分けられないので、起動するエージェントはこのコマンドで切り替える
   cmuxAgent = pkgs.writeShellScriptBin "cmux-agent" ''
-    exec ${lib.getExe agents.${config.dotfiles.cmux.agent}} "$@"
+    # cmux が PATH に追加する連携用ラッパーを経由するため、絶対パスでは起動しない
+    exec ${lib.escapeShellArg agents.${config.dotfiles.cmux.agent}} "$@"
   '';
 in
 {
