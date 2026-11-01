@@ -71,6 +71,14 @@ Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する
 PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
 以後キー設定の編集は即反映される。Herdr の設定リセットで symlink が置き換わった場合も、退避先の重複に注意して再度 `switch` する。
 
+## Oh My Pi
+
+Oh My Pi (`omp`) は公式 flake の Home Manager モジュールで導入する。既存の `pi` は残し、cmux の既定エージェントも変更しない。
+
+設定は `~/.omp/agent/config.yml` で管理し、pi の設定・拡張とは分ける。現時点では `programs.omp.settings` を宣言せず、OMP 側の設定変更を保持する。今後このオプションを指定する場合、Home Manager の適用時に設定ファイル全体が宣言内容で上書きされる。
+
+本体の更新は `flake.lock` 経由で行う。
+
 ## プロジェクトごとの開発環境
 
 デフォルトでは Node.js 26 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
