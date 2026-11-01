@@ -159,6 +159,12 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 `dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。
 
+### Pi の拡張パッケージの更新
+
+Pi の設定は書き込み可能なまま維持する。`switch` 時に Home Manager が設定をマージした後、Nix 管理の `pi-extensions-node-modules` の旧 store パスを除去する。拡張の更新で store パスが変わっても二重ロードされず、すでに旧パスが残っている環境も次回の `switch` で解消される。
+
+手動追加した npm / git / ローカルパッケージや、それ以外の Pi の設定は保持される。適用中の設定の書き戻しを避けるため、**`switch` の前に Pi を終了する**。
+
 ### Codex のレビュー用プラグイン
 
 `dotfiles.codex.plugins` に指定したプラグインは、`switch` 時に未インストールなら追加される。初回は Codex へのログインとネットワーク接続が必要。失敗した場合は次の `switch` で再試行する。インストール済みのものの更新・削除は行わない。
