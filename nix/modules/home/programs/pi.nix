@@ -67,6 +67,38 @@ in
         cwd = "{root}";
         languageIdByExtension.".nix" = "nix";
       }
+      {
+        id = "typescript-language-server";
+        enabled = true;
+        include = [
+          "**/*.ts"
+          "**/*.tsx"
+          "**/*.mts"
+          "**/*.cts"
+          "**/*.js"
+          "**/*.jsx"
+          "**/*.mjs"
+          "**/*.cjs"
+        ];
+        rootMarkers = [
+          "tsconfig.json"
+          "jsconfig.json"
+          "package.json"
+        ];
+        bin = "${pkgs.typescript-language-server}/bin/typescript-language-server";
+        args = [ "--stdio" ];
+        cwd = "{root}";
+        languageIdByExtension = {
+          ".ts" = "typescript";
+          ".tsx" = "typescriptreact";
+          ".mts" = "typescript";
+          ".cts" = "typescript";
+          ".js" = "javascript";
+          ".jsx" = "javascriptreact";
+          ".mjs" = "javascript";
+          ".cjs" = "javascript";
+        };
+      }
     ];
   };
 
