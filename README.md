@@ -136,7 +136,7 @@ direnv allow                                   # 以後 cd するだけで読み
 | 種類 | 値 | 変え方 |
 |---|---|---|
 | 端末ごとの値 | `dotfiles.username` / `hostname` (必須)、`homedir`、`dir`、`dock.apps` / `dock.others`、`cmux.agent` (cmux で起動するエージェント。`"pi"` (既定)、`"claude"`、`"codex"`) | そのまま書く。Dock は指定すると丸ごと置き換わる |
-| 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*` | そのまま書けば上書きされる |
+| 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*`、`programs.pi-coding-agent.settings.defaultProvider` / `defaultModel` | そのまま書けば上書きされる |
 | リスト | `home.packages`、`homebrew.brews` / `casks` / `vscode`、`dotfiles.claudeCode.plugins`、`dotfiles.claudeCode.extraSkills` (名前 → ディレクトリ)、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
 | 構成の前提 | `system.stateVersion`、`home.stateVersion`、`home-manager.useGlobalPkgs` / `useUserPackages`、`programs.zsh.enable` など | 違う値を書くとエラーになる。変えるなら `lib.mkForce` (基本は変えない) |
 | 共通のファイル | zshrc、zprofile、starship、cmux、Herdr の keys.json、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
@@ -146,6 +146,17 @@ home-manager 側の値は `home-manager.users."<ユーザー名>"` の下に書�
 ```nix
 home-manager.users."<ユーザー名>".dotfiles.claudeCode.settings.permissions.defaultMode = "default";
 ```
+
+Pi の起動時のプロバイダーとモデルを変えるなら:
+
+```nix
+home-manager.users."<ユーザー名>".programs.pi-coding-agent.settings = {
+  defaultProvider = "<プロバイダーID>";
+  defaultModel = "<モデルID>";
+};
+```
+
+指定しなければ `openai` / `gpt-6.1-sol` が使われる。認証情報はこの設定とは別なので、職場の環境で `/login` や API キーの設定を行う。認証情報自体は Nix の設定には書かない。
 
 職場用のプラグインやスキルを足すなら:
 
