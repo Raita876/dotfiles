@@ -1,36 +1,5 @@
 # Pi の拡張
 
-## Codex の利用枠表示
-
-`extensions/codex-usage/` は、Codex の利用枠を入力欄の真上に1行表示するローカル拡張。Home Manager の `programs.pi-coding-agent.settings.extensions` から読み込む。追加パッケージは不要。
-
-```text
-Codex  5h: 残り 75% · 2h0m後リセット | 週: 残り 58% · 3d8h後リセット
-```
-
-- Pi 1.4.0 の対話モードが対象。RPC・非対話モードでは取得も表示もしない。
-- Pi の `/login` で OpenAI Codex にログインする。`openai` の API キーや Codex CLI の認証ファイルは使わない。別プロバイダーのモデルを利用中でも Codex の枠を表示する。
-- Pi の認証 API を通してトークンの更新を任せ、`https://chatgpt.com/backend-api/wham/usage` にだけ送る。認証ファイルを直接読み書きせず、リダイレクトは拒否する。
-- 起動時と5分ごとに取得し、`/codex-usage` でも再取得できる。リセットまでの時間は1分ごとに再描画する。取得は認証解決も含めて10秒で打ち切り、同時実行しない。
-- API が返す時間枠に従って表示する。消費率70%以上で警告色、90%以上でエラー色。リセット時刻を過ぎた値は「更新待ち」にする。
-- 失敗時は残量を表示せず、エラーの種類と最終成功からの経過時間を表示する。HTTP 401/403 は再認証を案内する。認証情報や応答本文はログに出さない。
-- **モデル生成は行わず、取得失敗時の生成リクエストによるフォールバックも行わない。** この利用枠エンドポイントは公開 API としての互換性保証がないため、サービス側の変更で取得できなくなる場合がある。
-- 終了・セッション切替・`/reload` で通信とタイマーを停止する。
-
-通常の `~/Repository/dotfiles` に変更を取り込み、Pi を終了して `nix run .#switch` を実行し、Pi を起動し直す。以後のコード変更は `/reload` でも反映できる。試すだけなら、worktree 内で `pi --extension ./pi/extensions/codex-usage/index.ts` を実行する。
-
-無効化する場合:
-
-```sh
-PI_CODEX_USAGE=0 pi
-```
-
-テストはモックの認証・HTTP・タイマーで検証し、実際のアカウントやモデル API には接続しない。
-
-```sh
-node --test pi/extensions/codex-usage/usage.test.mjs
-```
-
 ## Herdr Space の自動命名
 
 `extensions/herdr-auto-name/` は、Herdr 内の Pi の会話から短い Space 名を生成するローカル拡張。Home Manager の `programs.pi-coding-agent.settings.extensions` から読み込む。
