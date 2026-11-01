@@ -12,7 +12,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask と VS Code 拡張機能) |
 | `nix/modules/home/` | home-manager: 設定を持たない CLI ツール (`packages.nix`) |
 | `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code、Codex、pi)。パッケージ、symlink、設定を 1 ファイルにまとめる |
-| `zsh/`, `starship/`, `cmux/`, `herdr/`, `vscode/`, `claude/`, `agents/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
+| `zsh/`, `starship/`, `cmux/`, `herdr/`, `vscode/`, `claude/`, `agents/`, `pi/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `nix/apps.nix` | `nix run .#switch` などの操作 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
@@ -178,6 +178,42 @@ main との差分をレビューしてください。コードは変更せず、
 Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別スキルで、`docs/agents/issue-tracker.md` と仕様の所在を前提にする。通常の品質レビューは上記の `code-review-and-quality` を使う。ブラウザ検証スキルには別途 Chrome DevTools MCP が必要だが、通常のコードレビューには不要。
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
+
+### 共通の PR レビュー
+
+`agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。
+
+各エージェントで `pr-review` skill を選択するか、次のように依頼する。skill の呼び出し UI・構文は各 CLI に従う。
+
+```text
+pr-review skill を使って、main との差分を tests と errors の観点でレビューしてください。
+```
+
+レビュー観点・範囲・報告形式は共通にし、実行方式だけを `references/execution.md` に分離している。
+
+| 利用可能な機能 | 実行方式 |
+|---|---|
+| サブエージェントへの委譲ツールあり | 現在公開されているツールの説明とスキーマに従って観点別に委譲。読み取り専用の reviewer があれば優先 |
+| 委譲ツールなし | 単独で観点別に逐次レビューすることを明示。並列・独立した検証を明示要求された場合は切り替え前に確認 |
+
+新しいサブエージェント拡張や名前付き agent 定義は追加しない。CLI 名だけで委譲機能の有効・無効を決めず、実際に使えるツールを確認する。単独実行を独立した複数 agent の検証として扱わない。
+
+Pi では標準の skill 呼び出しを使う。
+
+```text
+/skill:pr-review code tests --base main
+```
+
+| 指定 | 対象 |
+|---|---|
+| 範囲の省略 | ステージ済み・未ステージ・未追跡を含む作業ツリーの最終状態 |
+| `--base <ref>` | merge-base から HEAD のコミット済み差分。ローカル変更は除外 |
+| `--pr <number>` | `gh` で取得した PR 差分。checkout や投稿はしない。認証済みの `gh` が必要 |
+| `code` / `tests` / `errors` / `comments` / `types` | 指定観点でレビュー。省略または `all` はこの5観点から該当するものを選択 |
+| `simplify` | 明示指定時のみ、振る舞いを保つ簡素化を提案。編集はしない |
+| `parallel` / `sequential` | 委譲可能な環境では最大3件ずつの並列（既定）/ 1件ずつの逐次実行。委譲不可時の扱いは上記のとおり |
+
+対象 SHA と差分を固定し、指摘をメイン agent が検証・重複排除して日本語で報告する。失敗した観点や未検証部分は別記する。コード編集、テスト実行、GitHub への投稿は行わない。実行が必要なら別途依頼する。これも指示による運用であり、読み取り専用の OS サンドボックスではない。
 
 ### 端末固有のシェル設定と秘密情報
 
