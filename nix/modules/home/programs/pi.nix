@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   inherit (config.lib.dotfiles) link;
   piExtensions = pkgs.importNpmLock.buildNodeModules {
@@ -12,8 +17,8 @@ in
     enable = true;
     mutableSettings = true;
     extraPackages = [ pkgs.nodejs ];
-    settings.defaultProvider = "openai";
-    settings.defaultModel = "gpt-6.1-sol";
+    settings.defaultProvider = lib.mkDefault "openai";
+    settings.defaultModel = lib.mkDefault "gpt-6.1-sol";
     keybindings = {
       "tui.editor.cursorLineStart" = [
         "home"
