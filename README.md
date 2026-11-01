@@ -68,6 +68,14 @@ nix fmt                           # .nix ファイルを整形
 
 switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
 
+## 依存関係の自動更新
+
+GitHub Actions と `nix/packages/pi-extensions/` の npm パッケージは、Dependabot が週次で更新 PR を作成する (`.github/dependabot.yml`)。Actions はまとめて、npm は minor / patch をまとめて更新し、npm の major 更新は個別 PR にする。自動マージは行わない。
+
+npm 更新 PR は既存の Nix ビルド CI で確認する。Nix 側では `--legacy-peer-deps` を指定しているため、Dependabot の初回更新で依存解決が成功するか確認する。Pi 本体と拡張の実行時の互換性はビルドだけでは保証されないので、マージ・適用時に動作も確認する。
+
+Nix の `flake.lock` は既存の `update-flake-lock.yaml` が毎日更新し、ビルドとパッケージ差分を確認して PR を作成する。Dependabot の更新対象には含めない。マージ後の端末への反映は `git pull && nix run .#switch` で行う。
+
 ## プロジェクトごとの開発環境
 
 デフォルトでは Node.js 26 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
