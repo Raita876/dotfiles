@@ -1,9 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ config, pkgs, ... }:
 let
   inherit (config.lib.dotfiles) link;
   piExtensions = pkgs.importNpmLock.buildNodeModules {
@@ -15,7 +10,7 @@ in
 {
   programs.pi-coding-agent = {
     enable = true;
-    mutableSettings = true;
+    mutableSettings = false;
     extraPackages = [ pkgs.nodejs ];
     settings.defaultProvider = "openai";
     settings.defaultModel = "gpt-6.1-sol";
@@ -43,30 +38,6 @@ in
       "${piExtensions}/node_modules/pi-subagents"
     ];
   };
-
-  # store パスが変わると別パッケージとしてマージされるため、Nix 管理の旧パスだけを除去する。
-  home.activation.prunePiExtensionPackages =
-    let
-      cfg = config.programs.pi-coding-agent;
-    in
-    lib.mkIf (cfg.enable && cfg.mutableSettings && cfg.settings ? packages) (
-      lib.hm.dag.entryAfter [ "piCodingAgentMutableSettings" ] (
-        lib.hm.generators.mkImpureConfigMerger {
-          inherit pkgs;
-          format = "json";
-          empty = "{}";
-          mode = "600";
-          path = "${cfg.configDir}/settings.json";
-          staticSettings = (pkgs.formats.json { }).generate "pi-managed-packages.json" {
-            inherit (cfg.settings) packages;
-          };
-          jqOperation = ''
-            ${builtins.toJSON builtins.storeDir} as $storeDir
-            | ${builtins.readFile ./pi-prune-packages.jq}
-          '';
-        }
-      )
-    );
 
   # 更新は Nix の lock に集約し、拡張による自己更新を防ぐ。
   home.sessionVariables = {

@@ -61,22 +61,6 @@
         description = "Node.js devShell (direnv 対応)";
       };
 
-      checks.${system}.pi-packages =
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        pkgs.runCommand "pi-packages-test"
-          {
-            nativeBuildInputs = [
-              pkgs.python3
-              pkgs.jaq
-            ];
-          }
-          ''
-            python3 ${./nix/tests/pi-packages.py} ${./nix/modules/home/programs/pi-prune-packages.jq}
-            touch "$out"
-          '';
-
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
     };
 }

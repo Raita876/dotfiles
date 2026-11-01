@@ -159,11 +159,20 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 `dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。
 
-### Pi の拡張パッケージの更新
+### Pi の設定管理
 
-Pi の設定は書き込み可能なまま維持する。`switch` 時に Home Manager が設定をマージした後、Nix 管理の `pi-extensions-node-modules` の旧 store パスを除去する。拡張の更新で store パスが変わっても二重ロードされず、すでに旧パスが残っている環境も次回の `switch` で解消される。
+`~/.pi/agent/settings.json` は `mutableSettings = false` とし、Home Manager が生成する読み取り専用ファイルへのリンクで管理する。モデル・表示設定・拡張パッケージなどの共通設定は Nix に宣言し、変更後に `switch` する。既存ファイルとのマージは行わないため、拡張の更新で Nix store パスが変わっても旧パスは残らない。
 
-手動追加した npm / git / ローカルパッケージや、それ以外の Pi の設定は保持される。適用中の設定の書き戻しを避けるため、**`switch` の前に Pi を終了する**。
+Pi 内からの共通設定の保存や `pi install` / `pi remove` による共通パッケージ設定の変更はできず、保存時にエラーが出ることがある。`auth.json` やセッション履歴はこの読み取り専用化の対象外で、引き続き Pi が管理する。認証情報は Nix の設定に書かない。
+
+書き込み可能な設定から初めて移行するときは、次の手順で適用する。
+
+1. Pi をすべて終了する。
+2. 現在の `~/.pi/agent/settings.json` を確認し、残したい設定・手動追加パッケージを Nix の `programs.pi-coding-agent.settings` に宣言する。宣言しない設定は引き継がれない。
+3. 既存ファイルを退避する。例: `mv ~/.pi/agent/settings.json ~/.pi/agent/settings.json.before-immutable`（退避先が未使用であることを確認する）。
+4. `switch` を実行し、Pi を起動し直す。
+
+以後も `switch` 前に Pi を終了し、適用後に起動し直す。
 
 ### Codex のレビュー用プラグイン
 
