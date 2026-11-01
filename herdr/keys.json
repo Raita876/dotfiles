@@ -3,7 +3,7 @@
     "cmd-q": "app.quit",
     "cmd-h": "app.hide",
     "cmd-alt-h": "app.hide_others",
-    "cmd-n": "space.new",
+    "cmd-n": "mod.open:pi-space",
     "cmd-t": "tab.new",
     "cmd-ctrl-n": "space.close",
     "cmd-o": "space.prev",

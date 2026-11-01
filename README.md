@@ -23,6 +23,7 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `starship/starship.toml` | `~/.config/starship.toml` |
 | `cmux/` | `~/.config/cmux` |
 | `herdr/keys.json` | `~/.config/herdr-app/keys.json` |
+| `herdr/mods/pi-space/` | `~/.config/herdr-app/mods/pi-space/` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` |
 | `agents/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.codex/AGENTS.md`、`~/.pi/agent/AGENTS.md` |
 | `agents/shared/` | `~/.claude/shared` |
@@ -65,8 +66,8 @@ switch するとこのリポジトリに pre-commit フックが入る (`nix/mod
 
 ### Herdr のショートカット
 
-Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
-設定以外のセッション・レイアウト・mods は共有しない。
+Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
+セッション・レイアウト・配布済み mods は共有しない。
 
 PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
 以後キー設定の編集は即反映される。Herdr の設定リセットで symlink が置き換わった場合も、退避先の重複に注意して再度 `switch` する。
