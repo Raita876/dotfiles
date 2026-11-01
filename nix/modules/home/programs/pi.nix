@@ -10,7 +10,7 @@ in
 {
   programs.pi-coding-agent = {
     enable = true;
-    mutableSettings = true;
+    mutableSettings = false;
     extraPackages = [ pkgs.nodejs ];
     settings.defaultProvider = "openai";
     settings.defaultModel = "gpt-6.1-sol";
