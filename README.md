@@ -162,32 +162,6 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
 
-### Pi のセキュリティ監査
-
-`nix run .#switch` 後に新しい Pi を起動する。Markdown だけの変更は `/reload` で読み直せる。Nix の package と環境変数の変更には switch とプロセスの再起動が必要。
-
-#### Piolium
-
-[`@vigolium/piolium`](https://github.com/vigolium/piolium) 0.0.15 を Nix の npm lock で固定し、既存 Pi の拡張として読み込む。別の `piolium` CLI や Bun、Pi 本体の重複インストールは行わない。Claude Security の内容を移植するものではない。
-
-```text
-/piolium-help
-/piolium-lite
-/piolium-balanced
-/piolium-deep
-/piolium-diff
-```
-
-最初に help で対象・モードを確認する。実監査はモデル呼び出し・費用を伴い、長時間かかることがある。成果物は対象 repo の `piolium/` に出力される。`/piolium-smoke` もモデルを使うため、無料のロードテストではない。
-
-- 初期値は `PIOLIUM_MAX_AGENTS=1`。これは Piolium 内の並列数で、`acp_delegate` と共通の上限ではない。モデルも親と必ず同じとは限らない。
-- `PIOLIUM_VERTEX=0` で Vertex provider の自動有効化を止める。Vertex 用 SDK は同梱しない。
-- 子セッションは親の `AGENTS.md` や拡張を読み込まないため、`pi/piolium-policy.md` を全 `runAgent` 呼び出しのシステム指示へ前置する Nix パッチを加えている。非 Nix インストールと監査対象外のキャッシュ削除などを禁止し、不足ツールは未検証として報告させる。上流の該当コードが変わるとパッチはビルド時に失敗する。
-- **このポリシーと Piolium の guard は OS の隔離境界ではない。** テスト・PoC では対象コードを実行し、ファイル変更やネットワークアクセスが発生し得る。信頼できる repo か、必要な資格情報だけを渡した VM・コンテナなどで利用する。ホスト全体へのアクセスを許したまま未信頼コードを監査しない。
-- Semgrep 等は自動導入しない。必要なツールは対象プロジェクトの Nix devShell で用意する。不足・未実行の検査を「問題なし」と解釈しない。
-
-公開版の optional peer は Pi `^0.74.0` を宣言しており、Pi 1.4.0 は宣言範囲外。Pi 1.4.0 で拡張ロードとコマンド登録を検証しているが、全監査フローの互換性までは保証しない。
-
 ### 共通の PR レビュー
 
 `agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。
