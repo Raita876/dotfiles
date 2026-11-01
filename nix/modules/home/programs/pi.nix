@@ -35,6 +35,7 @@ in
       "${piExtensions}/node_modules/@juicesharp/rpiv-ask-user-question"
       "${piExtensions}/node_modules/@juicesharp/rpiv-todo"
       "${piExtensions}/node_modules/pi-open-tui"
+      "${piExtensions}/node_modules/pi-subagents"
     ];
   };
 
