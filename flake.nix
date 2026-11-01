@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
+    omp.url = "github:can1357/oh-my-pi";
 
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin";
@@ -21,6 +22,7 @@
       nixpkgs,
       nix-darwin,
       home-manager,
+      omp,
       ...
     }:
     let
@@ -31,6 +33,9 @@
         imports = [
           home-manager.darwinModules.home-manager
           ./nix/modules/darwin
+        ];
+        home-manager.sharedModules = [
+          omp.homeManagerModules.default
         ];
       };
       homeModules.default = ./nix/modules/home;

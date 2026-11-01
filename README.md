@@ -62,6 +62,14 @@ nix fmt                           # .nix ファイルを整形
 
 switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
 
+## Oh My Pi
+
+Oh My Pi (`omp`) は公式 flake の Home Manager モジュールで導入する。既存の `pi` は残し、cmux の既定エージェントも変更しない。
+
+設定は `~/.omp/agent/config.yml` で管理し、pi の設定・拡張とは分ける。現時点では `programs.omp.settings` を宣言せず、OMP 側の設定変更を保持する。今後このオプションを指定する場合、Home Manager の適用時に設定ファイル全体が宣言内容で上書きされる。
+
+本体の更新は `flake.lock` 経由で行う。
+
 ## プロジェクトごとの開発環境
 
 デフォルトでは Node.js 26 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
