@@ -111,8 +111,13 @@ direnv allow                                   # 以後 cd するだけで読み
             hostname = "work-mac";
           };
 
-          # リスト (casks / brews / vscode など) は共通分に追加される
+          # 共通の一覧をベースに追加・除外する
           homebrew.casks = [ "slack" ];
+          dotfiles.homebrew.exclude = {
+            casks = [ "notion" "zoom" ];
+            brews = [ "colima" ];
+            vscode = [ "vscodevim.vim" ];
+          };
           # 1 つしか値を持てない設定は mkDefault にしてあるので、普通に書けば上書きできる
           homebrew.onActivation.cleanup = "none";
           home-manager.users."<ユーザー名>".programs.git.settings.user.email = "<会社のメールアドレス>";
@@ -124,8 +129,34 @@ direnv allow                                   # 以後 cd するだけで読み
 ```
 
 - zshrc などはこのリポジトリへの symlink なので、読み込む側の Mac にもこのリポジトリを `dotfiles.dir` (既定は `~/Repository/dotfiles`) に clone しておく
-- 設定できる値は `nix/modules/darwin/options.nix` を参照
+- 端末ごとの設定値は `nix/modules/darwin/options.nix`、Homebrew の除外設定は `nix/modules/darwin/homebrew.nix` を参照
 - 共通で入るのは `nix/modules/` の分だけ。個人用の cask や VS Code 拡張機能は `nix/hosts/raita-mba.nix` にあるので、職場の Mac には入らない
+
+### Homebrew のアプリを追加・除外する
+
+追加は通常の `homebrew.casks` / `homebrew.brews` / `homebrew.vscode` に書き、除外は `dotfiles.homebrew.exclude` の同名のリストに書く。ベースの一覧をコピーする必要はなく、このリポジトリで今後追加されるアプリも、除外対象でなければ取り込まれる。
+
+```nix
+{
+  homebrew = {
+    casks = [ "slack" ];
+    brews = [ "watch" ];
+    vscode = [ "ms-python.python" ];
+  };
+  dotfiles.homebrew.exclude = {
+    casks = [ "notion" "zoom" ];
+    brews = [ "colima" ];
+    vscode = [ "vscodevim.vim" ];
+  };
+}
+```
+
+- 指定するのは Homebrew の名前 (例: `google-chrome`) や VS Code の拡張機能 ID。tap 付きの名前は設定に書かれた名前と完全一致させる
+- `homebrew.casks = [ { name = "slack"; greedy = true; } ];` のような属性セットも `name` で除外できる
+- 除外はすべてのモジュールの一覧をマージした後に適用する。別モジュールの VS Code・cmux・Herdr、個人用ホスト設定、外部で追加した項目も対象で、追加と除外の両方に指定した場合は除外が優先される。存在しない名前は無視する
+- 除外するのは Homebrew の管理対象だけ。アプリ用の設定ファイルや Dock の項目は削除しない。必要なら `dotfiles.dock.apps` なども変更する
+- VS Code 本体を除外しても `homebrew.vscode` に拡張機能が残っていると、Homebrew Bundle が本体を自動インストールする場合がある。VS Code を使わない場合は `homebrew.vscode = lib.mkForce [ ];` も指定する (モジュールの引数に `lib` を追加する)
+- 実際のアンインストールは `homebrew.onActivation.cleanup` に従う。既定の `"uninstall"` では次回 switch 時に削除されるが、`"none"` では既存のアプリが残る。`"uninstall"` は除外リストのアプリだけでなく、Homebrew の管理一覧にないアプリ全般を削除対象にする
 
 ### 読み込む側から変えられる値
 
@@ -133,7 +164,8 @@ direnv allow                                   # 以後 cd するだけで読み
 |---|---|---|
 | 端末ごとの値 | `dotfiles.username` / `hostname` (必須)、`homedir`、`dir`、`dock.apps` / `dock.others`、`cmux.agent` (cmux で起動するエージェント。`"pi"` (既定)、`"claude"`、`"codex"`) | そのまま書く。Dock は指定すると丸ごと置き換わる |
 | 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*`、`programs.pi-coding-agent.settings.defaultProvider` / `defaultModel` | そのまま書けば上書きされる |
-| リスト | `home.packages`、`homebrew.brews` / `casks` / `vscode`、`dotfiles.claudeCode.plugins`、`dotfiles.claudeCode.extraSkills` (名前 → ディレクトリ)、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
+| Homebrew のリスト | `homebrew.brews` / `casks` / `vscode` | 書いた分が追加される。個別に外すには `dotfiles.homebrew.exclude.brews` / `casks` / `vscode` に名前を書く。一覧全体の置き換えには `lib.mkForce` を使う (除外指定は置き換え後にも適用される) |
+| その他のリスト | `home.packages`、`dotfiles.claudeCode.plugins`、`dotfiles.claudeCode.extraSkills` (名前 → ディレクトリ)、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
 | 構成の前提 | `system.stateVersion`、`home.stateVersion`、`home-manager.useGlobalPkgs` / `useUserPackages`、`programs.zsh.enable` など | 違う値を書くとエラーになる。変えるなら `lib.mkForce` (基本は変えない) |
 | 共通のファイル | zshrc、zprofile、starship、cmux、Herdr の keys.json、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
 

@@ -61,6 +61,12 @@
         description = "Node.js devShell (direnv 対応)";
       };
 
+      checks.${system}.homebrew = import ./nix/tests/homebrew.nix {
+        inherit (nixpkgs) lib;
+        pkgs = nixpkgs.legacyPackages.${system};
+        base = self.darwinConfigurations.raita-mba;
+      };
+
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
     };
 }
