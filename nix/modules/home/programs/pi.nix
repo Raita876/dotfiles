@@ -19,6 +19,7 @@ in
     extraPackages = [ pkgs.nodejs ];
     settings.defaultProvider = lib.mkDefault "openai";
     settings.defaultModel = lib.mkDefault "gpt-6.1-sol";
+    settings.extensions = [ "${config.dotfiles.dir}/pi/extensions/herdr-auto-name" ];
     keybindings = {
       "tui.editor.cursorLineStart" = [
         "home"
