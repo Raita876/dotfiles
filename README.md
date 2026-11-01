@@ -4,6 +4,8 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 
 ## 構成
 
+### ディレクトリとファイル
+
 | パス | 内容 |
 |---|---|
 | `flake.nix` | inputs、`darwinConfigurations."raita-mba"`、外部向けの `darwinModules.default` / `homeModules.default` |
@@ -16,7 +18,9 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | `nix/apps.nix` | `nix run .#switch` などの操作 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
-| リポジトリ | リンク先 |
+### シンボリックリンク
+
+| リポジトリ内のパス | リンク先 |
 |---|---|
 | `zsh/zshrc` | `~/.zshrc` |
 | `zsh/zprofile` | `~/.zprofile` |
@@ -64,22 +68,6 @@ nix fmt                           # .nix ファイルを整形
 
 switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
 
-### Herdr のショートカット
-
-Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
-セッション・レイアウト・配布済み mods は共有しない。
-
-PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
-以後キー設定の編集は即反映される。Herdr の設定リセットで symlink が置き換わった場合も、退避先の重複に注意して再度 `switch` する。
-
-## Oh My Pi
-
-Oh My Pi (`omp`) は公式 flake の Home Manager モジュールで導入する。既存の `pi` は残し、cmux の既定エージェントも変更しない。
-
-設定は `~/.omp/agent/config.yml` で管理し、pi の設定・拡張とは分ける。現時点では `programs.omp.settings` を宣言せず、OMP 側の設定変更を保持する。今後このオプションを指定する場合、Home Manager の適用時に設定ファイル全体が宣言内容で上書きされる。
-
-本体の更新は `flake.lock` 経由で行う。
-
 ## プロジェクトごとの開発環境
 
 デフォルトでは Node.js 26 / Go 1.27 が入っている。プロジェクトで別のバージョンを使うときは devShell を置く:
@@ -91,7 +79,7 @@ nix flake init -t ~/Repository/dotfiles#node   # flake.nix と .envrc が置か�
 direnv allow                                   # 以後 cd するだけで読み込まれる
 ```
 
-## 職場など別の Mac で使う
+## 別の Mac での利用
 
 `darwinModules.default` を別の flake (職場用の非公開リポジトリなど) から読み込み、端末ごとの値を設定する。
 社内ツール名や会社のメールアドレスは読み込む側に書くので、このリポジトリには載らない。
@@ -170,6 +158,24 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 `dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。
 
+## ツールごとの設定
+
+### Herdr のショートカット
+
+Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
+セッション・レイアウト・配布済み mods は共有しない。
+
+PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
+以後キー設定の編集は即反映される。Herdr の設定リセットで symlink が置き換わった場合も、退避先の重複に注意して再度 `switch` する。
+
+### Oh My Pi の設定管理
+
+Oh My Pi (`omp`) は公式 flake の Home Manager モジュールで導入する。既存の `pi` は残し、cmux の既定エージェントも変更しない。
+
+設定は `~/.omp/agent/config.yml` で管理し、pi の設定・拡張とは分ける。現時点では `programs.omp.settings` を宣言せず、OMP 側の設定変更を保持する。今後このオプションを指定する場合、Home Manager の適用時に設定ファイル全体が宣言内容で上書きされる。
+
+本体の更新は `flake.lock` 経由で行う。
+
 ### Pi の設定管理
 
 `~/.pi/agent/settings.json` は `mutableSettings = false` とし、Home Manager が生成する読み取り専用ファイルへのリンクで管理する。モデル・表示設定・拡張パッケージなどの共通設定は Nix に宣言し、変更後に `switch` する。既存ファイルとのマージは行わないため、拡張の更新で Nix store パスが変わっても旧パスは残らない。
@@ -206,7 +212,7 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
 
-### 共通の PR レビュー
+## 共通の PR レビュー
 
 `agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。
 
@@ -242,7 +248,7 @@ Pi では標準の skill 呼び出しを使う。
 
 対象 SHA と差分を固定し、指摘をメイン agent が検証・重複排除して日本語で報告する。失敗した観点や未検証部分は別記する。コード編集、テスト実行、GitHub への投稿は行わない。実行が必要なら別途依頼する。これも指示による運用であり、読み取り専用の OS サンドボックスではない。
 
-### 端末固有のシェル設定と秘密情報
+## 端末固有のシェル設定と秘密情報
 
 `zsh/zshrc` は最後に `~/.zshrc.local` を読み込む。職場のツールの初期化 (gcloud の補完、nodenv など) はそこに書く。
 API キーなどの秘密情報は、このリポジトリにも職場用のリポジトリにも入れず、さらに別のファイルに分ける。
