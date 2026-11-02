@@ -41,9 +41,31 @@ Herdr は terminal セクションが global セクションより優先され�
 - `Ctrl+Tab` / `Ctrl+Shift+Tab` と `⌘⇧[` / `⌘⇧]` もタブ移動用に維持する。
 - Herdr の既定キー全体をこのファイルで管理する。アプリ更新で既定キーが追加されても自動で取り込まない。
 
+## テレメトリ
+
+`nix run .#switch` のたびに、Home Manager の activation で `~/.config/herdr-app/settings.json` の `telemetry` を `false` にする。ほかの設定項目は保持し、設定ファイルは Herdr から書き込み可能な通常ファイルのままにする。ファイルがなければ作成する。不正な JSON や JSON オブジェクト以外の場合は元のファイルを変更せず、activation をエラーで止める。
+
+GUI から再度有効化することはできるが、次の `switch` で無効に戻る。更新チェックや mod による通信は無効化しない。
+設定先は Home Manager の `xdg.configHome` に従う。`HERDR_APP_HOME` で別の場所を指定する構成は対象外。
+
+[Herdr の公式仕様](https://github.com/herdrdev/herdr-app/blob/master/docs/security.md#telemetry)では、無効化時にローカルのインストール ID と未送信レポートを削除する。送信済みのレポートは取り消せない。
+
+## テレメトリ設定のテスト
+
+リポジトリのルートから、Nix で評価した activation のスクリプトを一時ディレクトリに対して検証する。実際の Herdr の設定は変更しない。
+
+```sh
+attr='.#darwinConfigurations.raita-mba.config.home-manager.users.raita.home.activation.disableHerdrTelemetry.data'
+drv=$(nix eval --raw "$attr" --apply 's: builtins.head (builtins.attrNames (builtins.getContext s))')
+nix build --no-link "$drv^out"
+script=$(nix eval --raw "$attr" | awk '{print $2}')
+python3 herdr/test-telemetry.py "$script"
+```
+
 ## 適用
 
-PR のマージ後、通常の dotfiles ディレクトリで `nix run .#switch` を実行する。
+Herdr に設定を上書きされないよう、適用前に Herdr アプリを終了する。Herdr 内のターミナルではなく、別のターミナルから作業する。
+PR のマージ後、通常の dotfiles ディレクトリで `nix run .#switch` を実行し、Herdr を起動し直す。Settings → Privacy の「Share anonymous usage data」が OFF になっていることを確認する。
 既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
-`keys.json` と `mods/pi-space/` だけを symlink し、セッション・設定・レイアウト・配布済み mods は Herdr 側に残す。
+`keys.json` と `mods/pi-space/` だけを symlink し、セッション・レイアウト・配布済み mods は Herdr 側に残す。`settings.json` はテレメトリの項目だけを更新する。
 キー設定はライブ反映される。アプリの設定リセットで symlink が置き換わったら、退避先の重複に注意して `switch` し直す。

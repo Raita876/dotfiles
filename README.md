@@ -202,7 +202,7 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 ### Herdr のショートカット
 
-Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
+Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。`switch` 時には既存の `settings.json` のほかの項目を保持し、テレメトリを無効化する。適用前に Herdr を終了し、別のターミナルから `switch` した後に起動し直す。cmux との対応と差分、テレメトリの詳細は [herdr/README.md](herdr/README.md) を参照。
 セッション・レイアウト・配布済み mods は共有しない。
 
 PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
