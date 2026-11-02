@@ -1,6 +1,6 @@
 # Herdr の設定
 
-macOS アプリ版 Herdr の `~/.config/herdr-app/keys.json` と起動用 mod `mods/pi-space/` を管理する。TUI 版の設定ではない。
+macOS アプリ版 Herdr の `~/.config/herdr-app/keys.json`、`settings.json` と起動用 mod `mods/pi-space/` を管理する。TUI 版の設定ではない。
 `cmux/cmux.json` のカスタム設定と、そこで変更していない cmux の既定キーに合わせる。
 
 ## cmux との対応
@@ -41,9 +41,19 @@ Herdr は terminal セクションが global セクションより優先され�
 - `Ctrl+Tab` / `Ctrl+Shift+Tab` と `⌘⇧[` / `⌘⇧]` もタブ移動用に維持する。
 - Herdr の既定キー全体をこのファイルで管理する。アプリ更新で既定キーが追加されても自動で取り込まない。
 
+## テレメトリ
+
+`nix/modules/darwin/programs/herdr.nix` で `telemetry = false` を宣言し、Home Manager が生成する読み取り専用の `settings.json` への symlink でテレメトリを無効化する。設定は GUI ではなく Nix で管理し、変更後に `nix run .#switch` を実行する。
+
+既存の `settings.json` とのマージは行わない。残したい設定があれば、適用前に同じ Nix の設定へ追加する。更新チェックや mod による通信は無効化しない。
+設定先は Home Manager の `xdg.configHome` に従う。`HERDR_APP_HOME` で別の場所を指定する構成は対象外。
+
+[Herdr の公式仕様](https://github.com/herdrdev/herdr-app/blob/master/docs/security.md#telemetry)では、無効化時にローカルのインストール ID と未送信レポートを削除する。送信済みのレポートは取り消せない。
+
 ## 適用
 
-PR のマージ後、通常の dotfiles ディレクトリで `nix run .#switch` を実行する。
-既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
-`keys.json` と `mods/pi-space/` だけを symlink し、セッション・設定・レイアウト・配布済み mods は Herdr 側に残す。
+Herdr に設定を上書きされないよう、適用前に Herdr アプリを終了する。Herdr 内のターミナルではなく、別のターミナルから作業する。
+PR のマージ後、通常の dotfiles ディレクトリで `nix run .#switch` を実行し、Herdr を起動し直す。Settings → Privacy の「Share anonymous usage data」が OFF になっていることを確認する。
+既存の `~/.config/herdr-app/keys.json` と `settings.json` は、既定では Home Manager がそれぞれ `keys.json.before-nix` と `settings.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
+`keys.json`、`settings.json` と `mods/pi-space/` を symlink し、セッション・レイアウト・配布済み mods は Herdr 側に残す。
 キー設定はライブ反映される。アプリの設定リセットで symlink が置き換わったら、退避先の重複に注意して `switch` し直す。

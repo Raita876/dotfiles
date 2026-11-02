@@ -202,10 +202,10 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 ### Herdr のショートカット
 
-Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。cmux との対応と差分は [herdr/README.md](herdr/README.md) を参照。
+Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。`settings.json` は Nix で宣言的に管理し、テレメトリを無効化する。既存設定とのマージは行わないため、残したい設定は適用前に Nix へ追加する。適用前に Herdr を終了し、別のターミナルから `switch` した後に起動し直す。cmux との対応と差分、テレメトリの詳細は [herdr/README.md](herdr/README.md) を参照。
 セッション・レイアウト・配布済み mods は共有しない。
 
-PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` は、既定では Home Manager が `keys.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
+PR のマージ後、通常の `~/Repository/dotfiles` で `nix run .#switch` を実行する。既存の `~/.config/herdr-app/keys.json` と `settings.json` は、既定では Home Manager がそれぞれ `keys.json.before-nix` と `settings.json.before-nix` に自動退避する。安全のため事前の手動バックアップを推奨する。自動退避先が既に存在する場合は、別名に移してから実行する。
 以後キー設定の編集は即反映される。Herdr の設定リセットで symlink が置き換わった場合も、退避先の重複に注意して再度 `switch` する。
 
 ### Oh My Pi の設定管理
