@@ -50,18 +50,6 @@ GUI から再度有効化することはできるが、次の `switch` で無効
 
 [Herdr の公式仕様](https://github.com/herdrdev/herdr-app/blob/master/docs/security.md#telemetry)では、無効化時にローカルのインストール ID と未送信レポートを削除する。送信済みのレポートは取り消せない。
 
-## テレメトリ設定のテスト
-
-リポジトリのルートから、Nix で評価した activation のスクリプトを一時ディレクトリに対して検証する。実際の Herdr の設定は変更しない。
-
-```sh
-attr='.#darwinConfigurations.raita-mba.config.home-manager.users.raita.home.activation.disableHerdrTelemetry.data'
-drv=$(nix eval --raw "$attr" --apply 's: builtins.head (builtins.attrNames (builtins.getContext s))')
-nix build --no-link "$drv^out"
-script=$(nix eval --raw "$attr" | awk '{print $2}')
-python3 herdr/test-telemetry.py "$script"
-```
-
 ## 適用
 
 Herdr に設定を上書きされないよう、適用前に Herdr アプリを終了する。Herdr 内のターミナルではなく、別のターミナルから作業する。
