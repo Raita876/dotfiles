@@ -8,6 +8,7 @@
     "hashicorp.terraform"
     "jnoortheen.nix-ide"
     "ms-vscode-remote.remote-containers"
+    "openai.chatgpt"
   ];
 
   home-manager.users.${config.dotfiles.username} =
