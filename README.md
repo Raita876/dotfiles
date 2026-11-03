@@ -281,6 +281,36 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
 
+## 共通のセキュリティ監査
+
+Cloudflare の [security-audit-skill](https://github.com/cloudflare/security-audit-skill) を Claude Code・Codex・Pi 共通で使う。`nix/modules/home/options.nix` の `fetchFromGitHub` でコミットとハッシュを固定し、関連 Markdown・JSON schema・Node.js 検証スクリプトを含む `skills/security-audit/` 全体を Nix store から配布する。上流の MIT ライセンスは取得ソースの `LICENSE` に含まれる。`npx skills add` での別途インストールは不要。
+
+マージ後、通常の dotfiles を更新して `nix run .#switch` を実行する（Pi は終了してから適用し、起動し直す）。Claude Code は `~/.claude/skills/security-audit`、Codex と Pi は `~/.agents/skills/security-audit` から読む。既存セッションに表示されなければ新しいセッションを開始する。
+
+監査対象のリポジトリでエージェントを起動し、まずは範囲を限定して依頼する。
+
+```text
+security-audit skill を使い、./src の認証処理を重点的にセキュリティレビューしてください。
+ガイダンスモードで、コード変更や監査ファイルの作成はせず、根拠と未検証事項を報告してください。
+```
+
+完全な監査とレポートが必要なら、明示して依頼する。
+
+```text
+security-audit skill を使い、このコードベースを quick プロファイルで監査してください。
+出力先は ~/audits/my-project とし、新しい実行用ディレクトリを作ってください。
+独立したサブエージェントによる検証を行い、コードは変更しないでください。
+実行検証のサンドボックス要件を満たせない場合は対象コードを実行せず、needs_validation としてください。
+```
+
+- 通常の質問・重点レビューは **guidance mode**。明示的なコードベース監査・ペンテスト、全面レビュー、レポート成果物の要求では **full audit mode** になり、調査 → 探索 → 候補検証 → 構造化出力 → 独立検証 → 報告の6段階を実施する。
+- 完全監査にはツール使用・並列サブエージェント対応のエージェントと Node.js が必要。Node.js は既存の dotfiles パッケージを使う。skill の配置だけで委譲機能が有効になるわけではないため、各 CLI の利用可能な機能を確認する。Pi の `research` / `general` への委譲は、利用可能な調査・実行用 agent に対応付ける。
+- `quick` は限定的な初回確認、既定の `standard` は通常監査、`deep` は広範・多重検証向け。`quick` でも独立検証は省略しない。大きい対象では範囲と agent 呼び出し予算を先に相談する。複数 agent を使うため、時間・トークン消費が大きくなり得る。
+- 完全監査の既定の出力先は `~/security-audit-skill/<repo-name>/run-<N>`。`REPORT.md`、`FINDINGS-DETAIL.md`、`NEEDS-VALIDATION.md`、`findings.json`、`coverage-ledger.json` などを生成する。`confirmed` のみ重大度を付け、未確定の `needs_validation` と反証済みの `rejected` を区別する。1回の監査を網羅性の保証としない。
+- **対象コードのビルド・テスト等は、外部ネットワーク禁止・許可リストのみの環境変数・対象とツールの読み取り専用化・専用 scratch 以外への書き込み禁止・資源/時間制限を OS が強制する場合だけ実行する。** この PR はサンドボックスを構築しない。エージェントへの文章指示や通常の CLI サンドボックスだけで要件を満たすとは限らない。不足時は実行せず、未検証の理由と安全な検証計画を残す。本番・共有環境・外部サービスを試験しない。
+
+上流を更新する際は `nix/modules/home/options.nix` の `rev` と `hash` を更新し、`nix build .#checks.aarch64-darwin.agent-skills --print-build-logs` で配置元と上流の validator テストを確認してから `switch` する。ローカルの `agents/skills/` は従来どおり編集即反映の symlink で、外部の `security-audit` は読み取り専用の固定ソースになる。
+
 ## 共通の PR レビュー
 
 `agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。

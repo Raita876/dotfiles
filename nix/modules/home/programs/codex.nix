@@ -6,7 +6,7 @@
 }:
 let
   codexConfigDir = "${config.home.homeDirectory}/.codex";
-  inherit (config.lib.dotfiles) link agentSkillNames;
+  inherit (config.lib.dotfiles) link agentSkillSources;
   cfg = config.dotfiles.codex;
 
   codex = lib.getExe pkgs.codex;
@@ -103,9 +103,7 @@ in
   config.home.file = {
     ".codex/AGENTS.md".source = link "agents/AGENTS.md";
   }
-  // lib.listToAttrs (
-    map (
-      name: lib.nameValuePair ".agents/skills/${name}" { source = link "agents/skills/${name}"; }
-    ) agentSkillNames
-  );
+  // lib.mapAttrs' (
+    name: source: lib.nameValuePair ".agents/skills/${name}" { inherit source; }
+  ) agentSkillSources;
 }

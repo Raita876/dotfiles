@@ -82,6 +82,11 @@
           pkgs = nixpkgs.legacyPackages.${system};
           base = self.darwinConfigurations.raita-mba;
         };
+        agent-skills = import ./nix/tests/agent-skills.nix {
+          inherit (nixpkgs) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
+          base = self.darwinConfigurations.raita-mba;
+        };
       };
 
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
