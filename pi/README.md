@@ -1,5 +1,21 @@
 # Pi の拡張
 
+## Goal モード
+
+[`@narumitw/pi-goal`](https://github.com/narumiruna/pi-extensions/tree/main/packages/pi-goal) は、ゴールが完了するまで作業と検証を自動継続する拡張。バージョンと依存関係は `nix/packages/pi-extensions/` に固定し、Home Manager から読み込む。
+
+`nix run .#switch` で反映した後、Pi を起動し直して使う。
+
+```text
+/goal --tokens 100k 失敗しているテストを修正し、全テストと型チェックの成功を確認する
+/goal status
+/goal pause
+/goal resume
+/goal clear
+```
+
+自動作業中の応答数上限はデフォルト 25 回、進捗なしのガードは 3 回。自動継続には追加の API 利用と料金が発生し、トークン予算は厳密な金額上限ではない。完了はモデルが検証根拠付きで報告する方式なので、テストなどの達成条件をゴールに明記する。
+
 ## Herdr Space の自動命名
 
 `extensions/herdr-auto-name/` は、Herdr 内の Pi の会話から短い Space 名を生成するローカル拡張。Home Manager の `programs.pi-coding-agent.settings.extensions` から読み込む。

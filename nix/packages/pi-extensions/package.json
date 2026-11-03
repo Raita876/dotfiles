@@ -5,6 +5,7 @@
   "dependencies": {
     "@juicesharp/rpiv-ask-user-question": "2.15.0",
     "@juicesharp/rpiv-todo": "2.15.0",
+    "@narumitw/pi-goal": "0.54.14",
     "billion-context": "0.1.209",
     "cc-safety-net": "2.7.1",
     "pi-btw": "0.8.0",
