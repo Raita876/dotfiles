@@ -254,20 +254,6 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 候補を比較した結果、論文・調査資料向けの `ai-review-skills` と、既存のレビュー bot の指摘を修正・push する `gh-review-loop` は採用していない。ローカル差分を手軽に確認する場合は、標準の `/review` も使える。
 
-## 共通の Git 操作
-
-`agents/skills/git/` は Claude Code・Codex・Pi 共通の Git 操作用 skill。既存の配置規則で `~/.claude/skills/git` と `~/.agents/skills/git` に配置する。git と git-wt、GitHub の PR 操作には認証済みの gh が必要。
-
-各エージェントで `git` skill を選択するか、次のように依頼する。
-
-```text
-git skill を使って、main 起点の feature ブランチを git wt で作り、変更を PR にしてください。
-```
-
-個別の規約・指示がなければ feature ブランチは `main` 起点とし、`git wt` で作った worktree 内で作業する。`main` の変更は既存コミットのハッシュを保つ `git merge` で取り込み、rebase は行わない。コンフリクト時は両側の原因コミット・ブランチ・関連 PR を調査し、特定できないものはその理由も報告する。マージ元・先のどちらを優先するかユーザーに確認するまで解消しない。
-
-未コミット変更の保護、履歴を書き換える操作の制限、検証、対象を限定したステージ、push / PR の許可範囲も定義している。これはエージェントへの手順指示であり、Git の hook や強制的な実行制限ではない。
-
 ## 共通の PR レビュー
 
 `agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。
