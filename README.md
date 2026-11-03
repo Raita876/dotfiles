@@ -68,6 +68,21 @@ nix fmt                           # .nix ファイルを整形
 
 switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
 
+## Markdown からスライドを作成
+
+Marp CLI を home-manager で管理する。`nix run .#switch` で反映すると `marp` コマンドが使える。
+
+```sh
+marp slides.md                 # HTML を生成
+marp slides.md --pdf           # PDF を生成
+marp slides.md --pptx          # Google スライドに取り込める PPTX を生成
+marp --preview slides.md       # ブラウザーでプレビュー
+```
+
+PDF / PPTX 出力にはブラウザーが必要。この構成では Homebrew で管理している Google Chrome を使う。
+
+通常の PPTX 出力は各ページが画像になるため、Google スライドに取り込んでも本文を個別編集できない。修正は Markdown 側で行って再出力する。
+
 ## 依存関係の自動更新
 
 GitHub Actions と `nix/packages/pi-extensions/` の npm パッケージは、Dependabot が週次で更新 PR を作成する (`.github/dependabot.yml`)。Actions はまとめて、npm は minor / patch をまとめて更新し、npm の major 更新は個別 PR にする。自動マージは行わない。
