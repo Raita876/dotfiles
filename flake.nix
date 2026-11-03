@@ -4,6 +4,11 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
     omp.url = "github:can1357/oh-my-pi";
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
 
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin";
@@ -23,6 +28,7 @@
       nix-darwin,
       home-manager,
       omp,
+      hermes-agent,
       ...
     }:
     let
@@ -36,6 +42,10 @@
         ];
         home-manager.sharedModules = [
           omp.homeManagerModules.default
+          hermes-agent.homeManagerModules.default
+          {
+            services.hermes-agent.package = hermes-agent.packages.${system}.messaging;
+          }
         ];
       };
       homeModules.default = ./nix/modules/home;
@@ -61,10 +71,17 @@
         description = "Node.js devShell (direnv 対応)";
       };
 
-      checks.${system}.homebrew = import ./nix/tests/homebrew.nix {
-        inherit (nixpkgs) lib;
-        pkgs = nixpkgs.legacyPackages.${system};
-        base = self.darwinConfigurations.raita-mba;
+      checks.${system} = {
+        homebrew = import ./nix/tests/homebrew.nix {
+          inherit (nixpkgs) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
+          base = self.darwinConfigurations.raita-mba;
+        };
+        hermes = import ./nix/tests/hermes.nix {
+          inherit (nixpkgs) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
+          base = self.darwinConfigurations.raita-mba;
+        };
       };
 
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;

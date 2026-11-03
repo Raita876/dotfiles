@@ -215,6 +215,10 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 ## ツールごとの設定
 
+### Hermes Agent と Discord
+
+Hermes は公式 Nix flake の Discord 依存関係を含む `messaging` パッケージで導入する。Discord アプリは個人ホストの既存 cask で管理する。連携は MCP ではなく Hermes 標準の Gateway を使い、秘密情報は Git / Nix store の外に置く。自動起動は既定で無効。[セットアップ・接続確認・常駐化の手順](hermes/README.md) を参照。
+
 ### Herdr のエージェント操作
 
 共通 skill [`herdr-desktop`](agents/skills/herdr-desktop/SKILL.md) で、デスクトップ版の Space 作成、対話エージェントへの依頼、待機、回答取得を行う。たとえば「Herdr の新規 Space で、ペペロンチーノの作り方をエージェントに尋ねて」と依頼する。
