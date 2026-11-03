@@ -215,6 +215,14 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 ## ツールごとの設定
 
+### Herdr のエージェント操作
+
+共通 skill [`herdr-desktop`](agents/skills/herdr-desktop/SKILL.md) で、デスクトップ版の Space 作成、対話エージェントへの依頼、待機、回答取得を行う。たとえば「Herdr の新規 Space で、ペペロンチーノの作り方をエージェントに尋ねて」と依頼する。
+
+画面の操作には `herdr-app`、端末・エージェントの操作には `hc` / `herdr-core` を使う。旧ターミナル版の `herdr` とは別物で、デスクトップ版では `HERDR_ENV=1` ではなく `HC_TERMINAL_ID` と `HC_TERMINAL_SOCKET` を確認する。`hc` が PATH にない場合は、実行可能な `$HOME/.local/bin/herdr-core` も確認する。
+
+新規 skill の配置には、マージ後に通常の dotfiles で `nix run .#switch` を実行する。Claude Code は `~/.claude/skills/herdr-desktop`、Codex と Pi は `~/.agents/skills/herdr-desktop` から読む。実行中のエージェントに見えなければ、新しいセッションを開始する。skill の追加だけなら Herdr 自体の再起動や環境変数の手動設定は不要。
+
 ### Herdr のショートカット
 
 Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。`settings.json` は Nix で宣言的に管理し、テレメトリを無効化する。既存設定とのマージは行わないため、残したい設定は適用前に Nix へ追加する。適用前に Herdr を終了し、別のターミナルから `switch` した後に起動し直す。cmux との対応と差分、テレメトリの詳細は [herdr/README.md](herdr/README.md) を参照。
