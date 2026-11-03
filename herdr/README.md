@@ -50,6 +50,35 @@ Herdr は terminal セクションが global セクションより優先され�
 
 [Herdr の公式仕様](https://github.com/herdrdev/herdr-app/blob/master/docs/security.md#telemetry)では、無効化時にローカルのインストール ID と未送信レポートを削除する。送信済みのレポートは取り消せない。
 
+## macOS のデスクトップ通知
+
+`desktop_notifications.py` が Herdr App のローカルソケットを 2 秒ごとに読み、エージェントの状態変化を `terminal-notifier` で macOS に通知する。ツールとログイン時に起動する LaunchAgent は `nix/modules/darwin/programs/herdr.nix` で管理する。Herdr の配布済み mod は変更しない。
+
+- Herdr が状態を把握できる全エージェントが対象。サブエージェントは除外する。
+- `working` / `blocked` / `error` から `done` への遷移で完了を通知する。閲覧済みの `idle` は通知しない。
+- `blocked` / `error` に変わると入力待ち・エラーを通知する。これは対象の端末を見ているときも通知する。
+- 起動・再接続直後や新たに検出した端末の既存状態は通知しない。Herdr が起動していない間は待機する。
+- ポーリングの間に終わる短い状態変化は見逃す場合がある。
+- 通知にエージェント名・Space 名・Tab 名を含む。会話本文は送信しない。ロック画面での表示は macOS 側で制御する。
+- 通知をクリックすると Herdr を前面に出す。該当端末への直接移動はしない。Herdr 標準の通知音・トーストはそのまま残す。
+- `HERDR_APP_HOME` による別の設定先は対象外。
+
+適用後、macOS の「システム設定 → 通知」で **terminal-notifier** の通知を許可する。通知の送信元は Herdr ではなく terminal-notifier になる。集中モード等で抑制される場合もある。初回の通知時に許可を求められる場合は許可する。
+
+通知許可の診断、稼働状態、エラーログ:
+
+```sh
+terminal-notifier -diagnose
+launchctl print gui/$(id -u)/org.nix-community.home.herdr-desktop-notifications
+tail -n 30 ~/Library/Logs/herdr-desktop-notifications.log
+```
+
+単体テスト（実際の通知は送信しない）:
+
+```sh
+python3 -m unittest discover -s herdr -p 'test_*.py'
+```
+
 ## 適用
 
 Herdr に設定を上書きされないよう、適用前に Herdr アプリを終了する。Herdr 内のターミナルではなく、別のターミナルから作業する。
