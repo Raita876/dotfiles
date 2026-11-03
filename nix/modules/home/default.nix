@@ -12,6 +12,7 @@
     ./programs/codex.nix
     ./programs/pi.nix
     ./programs/omp.nix
+    ./programs/hermes.nix
   ];
 
   home.stateVersion = "26.11";
