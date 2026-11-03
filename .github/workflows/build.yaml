@@ -38,6 +38,19 @@ jobs:
               - 'templates/**'
               - '.github/workflows/**'
 
+  nix-lint:
+    needs: changes
+    if: needs.changes.outputs.nix == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+
+      - name: Check Nix sources and lint regression tests
+        run: nix build .#checks.x86_64-linux.nix-lint .#checks.x86_64-linux.nix-lint-tests --no-link --print-build-logs
+
   build:
     needs: changes
     if: needs.changes.outputs.nix == 'true' || github.event_name == 'workflow_dispatch'
@@ -49,8 +62,11 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: Check flake
-        run: nix flake check --show-trace
+      - name: Evaluate flake
+        run: nix flake check --no-build --show-trace
+
+      - name: Check Homebrew
+        run: nix build .#checks.aarch64-darwin.homebrew --no-link --print-build-logs
 
       # switch はシステムを書き換えるので CI では実行せず、その中身のビルドが通るかだけを見る
       - name: Build system

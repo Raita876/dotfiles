@@ -68,6 +68,22 @@ nix fmt                           # .nix ファイルを整形
 
 switch するとこのリポジトリに pre-commit フックが入る (`nix/modules/home/git-hooks.nix`)。コミット時に gitleaks で秘密情報を検査し、整形されていない .nix ファイルがあれば止める。
 
+## Nix の静的解析
+
+`flake.lock` で固定した nixpkgs の statix / deadnix を使い、Git 管理下のすべての `.nix`（root flake、`nix/`、`templates/node/flake.nix` を含む）を検査する。書き換えは行わず、指摘があれば失敗する。除外・ルールの無効化は設定していない。新規ファイルは先に `git add` する。
+
+```sh
+# Apple Silicon macOS
+nix build .#checks.aarch64-darwin.nix-lint .#checks.aarch64-darwin.nix-lint-tests --no-link --print-build-logs
+
+# Linux（CI と同じ入口）
+nix build .#checks.x86_64-linux.nix-lint .#checks.x86_64-linux.nix-lint-tests --no-link --print-build-logs
+```
+
+`nix-lint-tests` は一時的な root / モジュール / Node テンプレートの各ファイルに未使用の束縛と重複キーの問題を注入し、検出と非書き換えを確認する。実リポジトリは変更しない。`nix flake check` でもローカルの system に対応する両チェックを実行する。
+
+CI は静的解析を Linux の `nix-lint` job で行い、macOS 側は flake の評価・既存 Homebrew テスト・Darwin system のビルドを担当する。整形は引き続き `nix fmt` と pre-commit が担当し、静的解析とは分ける。
+
 ## 依存関係の自動更新
 
 GitHub Actions と `nix/packages/pi-extensions/` の npm パッケージは、Dependabot が週次で更新 PR を作成する (`.github/dependabot.yml`)。Actions はまとめて、npm は minor / patch をまとめて更新し、npm の major 更新は個別 PR にする。自動マージは行わない。
