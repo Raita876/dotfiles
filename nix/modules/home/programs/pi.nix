@@ -39,6 +39,7 @@ in
       "${piExtensions}/node_modules/billion-context"
       "${piExtensions}/node_modules/cc-safety-net"
       "${piExtensions}/node_modules/pi-btw"
+      "${piExtensions}/node_modules/@narumitw/pi-goal"
       "${piExtensions}/node_modules/pi-lsp"
       "${piExtensions}/node_modules/@juicesharp/rpiv-ask-user-question"
       "${piExtensions}/node_modules/@juicesharp/rpiv-todo"
