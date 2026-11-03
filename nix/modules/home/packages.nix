@@ -4,6 +4,7 @@
     eza
     jq
     tree
+    dust
     gitleaks
     git-secrets
     git-wt

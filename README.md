@@ -200,6 +200,19 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 
 ## ツールごとの設定
 
+### dust でディスク使用量を調べる
+
+`dust` はディレクトリごとのディスク使用量を表示する CLI。`switch` 後に利用できる。
+
+```sh
+dust -d 1 ~                       # ホーム直下の使用量
+dust -d 2 ~/Repository/dotfiles    # プロジェクト内を深さ 2 まで表示
+```
+
+表示対象の読み取りだけを行い、ファイルの削除や権限変更は行わない。macOS のプライバシー保護やアクセス権によって読めないディレクトリはエラーとして表示され、集計に含まれない場合がある。結果を全体の使用量と決めつけず、読めるプロジェクトなどに対象を絞る。調査のために `sudo` や再帰的な権限変更は行わない。
+
+`/nix/store` の容量調査と掃除は別。store 内のファイルを直接削除せず、不要な世代や GC root を確認したうえで Nix の GC を利用する。この構成の自動 GC 設定は `nix/modules/darwin/system.nix` にある。
+
 ### Herdr のショートカット
 
 Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。`settings.json` は Nix で宣言的に管理し、テレメトリを無効化する。既存設定とのマージは行わないため、残したい設定は適用前に Nix へ追加する。適用前に Herdr を終了し、別のターミナルから `switch` した後に起動し直す。cmux との対応と差分、テレメトリの詳細は [herdr/README.md](herdr/README.md) を参照。
