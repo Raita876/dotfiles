@@ -14,7 +14,7 @@ Hermes は公式 Nix flake の `messaging` パッケージと Home Manager モ�
 
 switch 時に公式モジュールが `~/.hermes/config.yaml` へ宣言した設定をマージし、`.env` を非秘密設定と `secrets.env` から再生成する。`.env` への直接編集は次の switch で失われるため、トークン・許可ユーザー・API キーは必ず `secrets.env` に書く。既存の Hermes を移行する場合、先に `.env` を安全な場所へ退避し、必要な値を `secrets.env` へ移す。
 
-記憶・履歴・`auth.json` はリポジトリに取り込まない。モデルは固定せず、初回に利用するプロバイダーとモデルを選ぶ。Gateway の自動起動は認証前の起動を避けるため既定で無効。
+記憶・履歴・`auth.json` はリポジトリに取り込まない。既定のプロバイダーは `openai-codex`、モデルは `gpt-6.1-sol` とし、Nix で管理する。ChatGPT アカウントでの OAuth 認証はローカルで行う。Gateway の自動起動は認証前の起動を避けるため既定で無効。
 
 ## 初回セットアップ
 
@@ -39,27 +39,44 @@ chmod 600 ~/.config/hermes/secrets.env
 $EDITOR ~/.config/hermes/secrets.env
 ```
 
-例えば OpenRouter を使う場合の内容:
+既定の OpenAI Codex を使う場合の内容:
 
 ```dotenv
 DISCORD_BOT_TOKEN=<Bot のトークン>
 DISCORD_ALLOWED_USERS=<自分の数値ユーザー ID>
-OPENROUTER_API_KEY=<API キー>
 ```
+
+OpenAI Codex は次の手順で OAuth 認証するため、`OPENROUTER_API_KEY` や `OPENAI_API_KEY` は不要。別の API プロバイダーへ変更する場合は、その API キーもこのファイルに追加する。
 
 複数ユーザーはカンマ区切り。許可リストを空のまま使ったり、`DISCORD_ALLOW_ALL_USERS=true` / `GATEWAY_ALLOW_ALL_USERS=true` を追加したりしない。非秘密の既定設定も `secrets.env` 側の同名変数で上書きできるため、内容は自分で管理する。
 
-### 3. 適用し、モデルを選ぶ
+### 3. 適用し、OpenAI Codex を認証する
 
-マージ後、通常の dotfiles で実行する:
+マージ後、通常の dotfiles で実行する (Pi は終了し、通常のターミナルから switch する):
 
 ```sh
 cd ~/Repository/dotfiles
 nix run .#switch
-hermes model
+hermes auth status openai-codex
 ```
 
-`hermes model` で利用するプロバイダーとモデルを選ぶ。OAuth を選ぶ場合は対話的に認証し、生成された認証ファイルはローカルに保持する。設定変更が managed 設定として拒否される項目は、Home Manager の `services.hermes-agent.settings` に宣言して switch する。モデル API の利用料金は別途発生する。
+未認証の場合だけ次を実行し、ブラウザーで利用する ChatGPT アカウントにログインして許可する。認証済みの場合は再認証不要。
+
+```sh
+hermes auth add openai-codex --type oauth --browser
+```
+
+生成された認証ファイルはローカルに保持する。契約に応じたモデルの利用可否・利用上限が適用される。
+
+```sh
+hermes config get model
+hermes auth status openai-codex
+hermes
+```
+
+`provider: openai-codex`、`default: gpt-6.1-sol`、認証状態 `logged in` を確認し、`hermes` でツールを使わない簡単な会話を試す。
+
+Home Manager 管理下では `hermes model` からモデル設定を保存できない。プロバイダー・モデルを変更する場合は `nix/modules/home/programs/hermes.nix` の `services.hermes-agent.settings.model` を変更して switch する。API キー方式のプロバイダーを使う場合、API の利用料金は通常のチャットの月額契約とは別途発生する。
 
 ### 4. 手動で接続を確認する
 

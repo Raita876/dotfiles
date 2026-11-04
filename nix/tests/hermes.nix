@@ -40,6 +40,11 @@ let
     testSettings = {
       expr = cfg.settings;
       expected = {
+        model = {
+          provider = "openai-codex";
+          default = "gpt-6.1-sol";
+          base_url = "https://chatgpt.com/backend-api/codex";
+        };
         group_sessions_per_user = true;
         approvals = {
           mode = "manual";
