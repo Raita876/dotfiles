@@ -41,7 +41,7 @@ export function request(path, payload, signal, timeout = 2000) {
   });
 }
 
-export function createBridge(env = process.env) {
+export function createBridge(env = process.env, { app = "pi", label = LABEL } = {}) {
   if (!env.HC_TERMINAL_ID || !env.HC_TERMINAL_SOCKET) return null;
   const terminal = env.HC_TERMINAL_ID;
   const appSocket = join(env.HERDR_APP_HOME || join(homedir(), ".config/herdr-app"), "herdr-app.sock");
@@ -58,14 +58,14 @@ export function createBridge(env = process.env) {
       const listing = await request(appSocket, { ls: true }, signal);
       const space = listing.spaces?.find((item) => item.id === spaceId && item.machine == null);
       const tab = space?.tabs?.find((item) => item.id === tabId && item.active);
-      if (tab?.terminals?.find((item) => item.app === "pi")?.terminal !== terminal) return null;
+      if (tab?.terminals?.find((item) => item.app === app)?.terminal !== terminal) return null;
       // ls の表示名では、未命名の Space と手動名を区別できない。
       const document = await core("doc.get", { name: "herdr-app" }, signal);
       const stored = document.value?.spaces?.find((item) => item.id === spaceId);
       if (!stored || typeof stored.name !== "string") return null;
       let previous;
       try {
-        previous = JSON.parse(info.labels[LABEL] || "null");
+        previous = JSON.parse(info.labels[label] || "null");
       } catch {
         previous = null;
       }
@@ -75,7 +75,7 @@ export function createBridge(env = process.env) {
       await request(appSocket, { do: "space.rename", args: { id: space, name } }, signal);
     },
     async remember(previous, signal) {
-      await core("terminal.label", { terminal, labels: { [LABEL]: JSON.stringify(previous) } }, signal);
+      await core("terminal.label", { terminal, labels: { [label]: JSON.stringify(previous) } }, signal);
     },
   };
 }

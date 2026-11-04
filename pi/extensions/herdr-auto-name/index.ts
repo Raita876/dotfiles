@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { createBridge } from "./bridge.mjs";
-import { conversation, createNamer, SYSTEM_PROMPT } from "./naming.mjs";
+import { createBridge } from "../../../herdr/auto-name/bridge.mjs";
+import { conversation, createNamer, SYSTEM_PROMPT } from "../../../herdr/auto-name/naming.mjs";
 
 export default function (pi: ExtensionAPI) {
   let namer: ReturnType<typeof createNamer> | undefined;

@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import setup from "./index.ts";
-import { createBridge, LABEL, request } from "./bridge.mjs";
-import { conversation, createNamer, INTERVAL, titleFrom } from "./naming.mjs";
+import { createBridge, LABEL, request } from "../../../herdr/auto-name/bridge.mjs";
+import { conversation, createNamer, INTERVAL, titleFrom } from "../../../herdr/auto-name/naming.mjs";
 
 function fixture(overrides = {}) {
   let clock = 100_000;
@@ -166,6 +166,7 @@ test("bridge maps terminal labels to local active tab, reads raw names and write
   let active = true;
   let machine = null;
   let leader = "t1";
+  let app = "pi";
   let labels = { "herdr.space": "s1", "herdr.tab": "tab1" };
   const commands = [];
   await server(t, coreSocket, (req, socket) => {
@@ -177,7 +178,7 @@ test("bridge maps terminal labels to local active tab, reads raw names and write
   });
   await server(t, join(home, "herdr-app.sock"), (req, socket) => {
     if (req.ls) socket.end(`${JSON.stringify({ spaces: [{ id: "s1", machine, tabs: [
-      { id: "tab1", active, terminals: [{ terminal: leader, app: "pi" }, { terminal: "t1", app: "pi" }] },
+      { id: "tab1", active, terminals: [{ terminal: leader, app }, { terminal: "t1", app }] },
     ] }] })}\n`);
     else { commands.push(req); socket.end("{\"ok\":true}\n"); }
   });
@@ -199,6 +200,16 @@ test("bridge maps terminal labels to local active tab, reads raw names and write
   machine = null;
   leader = "other-pi";
   assert.equal(await bridge.inspect(), null);
+  leader = "t1";
+  app = "claude-code";
+  assert.equal(await bridge.inspect(), null);
+  const claudeBridge = createBridge({ HC_TERMINAL_ID: "t1", HC_TERMINAL_SOCKET: coreSocket, HERDR_APP_HOME: home },
+    { app: "claude-code", label: "dotfiles.claude-auto-name" });
+  assert.equal((await claudeBridge.inspect()).name, "");
+  assert.equal((await claudeBridge.inspect()).previous, null);
+  await claudeBridge.remember({ space: "s1", title: "Claude の作業" });
+  assert.equal((await claudeBridge.inspect()).previous.title, "Claude の作業");
+  assert.equal(JSON.parse(labels[LABEL]).title, "認証の修正");
 });
 
 test("socket requests handle UTF-8 split across chunks and protocol errors", async (t) => {

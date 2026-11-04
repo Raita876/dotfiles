@@ -18,7 +18,7 @@
 
 ## Herdr Space の自動命名
 
-`extensions/herdr-auto-name/` は、Herdr 内の Pi の会話から短い Space 名を生成するローカル拡張。Home Manager の `programs.pi-coding-agent.settings.extensions` から読み込む。
+`extensions/herdr-auto-name/` は、Herdr 内の Pi の会話から短い Space 名を生成するローカル拡張。Home Manager の `programs.pi-coding-agent.settings.extensions` から読み込む。Herdr 通信・命名ルールは `../herdr/auto-name/` に置き、[Claude Code 版](../claude/README.md)と共有する。
 
 通常の `~/Repository/dotfiles` に変更を取り込み、Pi を終了して `nix run .#switch` を実行し、Pi を起動し直す。拡張のコード自体はリポジトリから直接読み込むため、以後のコード変更は Pi の再起動または `/reload` で反映できる。
 
