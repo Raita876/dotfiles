@@ -55,6 +55,7 @@ in
     permissions.defaultMode = "auto";
     skipDangerousModePermissionPrompt = true;
     theme = "dark";
+    env.CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
     hooks = {
       Stop = [
         {
