@@ -54,7 +54,6 @@ in
     permissions.defaultMode = "auto";
     skipDangerousModePermissionPrompt = true;
     theme = "dark";
-    # Sonnet 4.x などの旧モデル以外では、TODO リストのツールが既定で無効になっているため
     env.CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
   };
 
