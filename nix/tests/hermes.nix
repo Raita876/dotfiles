@@ -15,6 +15,20 @@ let
         }
       ];
     }).config.home-manager.users.${username};
+  overriddenModel = {
+    provider = "custom";
+    default = "hermes-default";
+    base_url = "http://127.0.0.1:4000/v1";
+    api_mode = "chat_completions";
+  };
+  overriddenCfg =
+    (base.extendModules {
+      modules = [
+        {
+          home-manager.users.${username}.dotfiles.hermes.model = overriddenModel;
+        }
+      ];
+    }).config.home-manager.users.${username}.services.hermes-agent;
   failures = lib.runTests {
     testCliEnabled = {
       expr = home.programs.hermes-agent.enable;
@@ -52,6 +66,14 @@ let
           cron_mode = "deny";
         };
       };
+    };
+    testModelOverride = {
+      expr = overriddenCfg.settings.model;
+      expected = overriddenModel;
+    };
+    testModelOverridePreservesSettings = {
+      expr = removeAttrs overriddenCfg.settings [ "model" ];
+      expected = removeAttrs cfg.settings [ "model" ];
     };
     testWorkspace = {
       expr = cfg.workingDirectory;

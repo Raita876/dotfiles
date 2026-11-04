@@ -76,7 +76,7 @@ hermes
 
 `provider: openai-codex`、`default: gpt-6.1-sol`、認証状態 `logged in` を確認し、`hermes` でツールを使わない簡単な会話を試す。
 
-Home Manager 管理下では `hermes model` からモデル設定を保存できない。プロバイダー・モデルを変更する場合は `nix/modules/home/programs/hermes.nix` の `services.hermes-agent.settings.model` を変更して switch する。API キー方式のプロバイダーを使う場合、API の利用料金は通常のチャットの月額契約とは別途発生する。
+Home Manager 管理下では `hermes model` からモデル設定を保存できない。プロバイダー・モデルを変更する場合は、ホスト設定やこの flake を読み込む側から `dotfiles.hermes.model` を上書きして switch する。この型付きオプションの既定値は各項目に `lib.mkDefault` を指定しているため、通常の値の指定で上書きでき、`lib.mkForce` は不要。上流の `services.hermes-agent.settings` は独自のマージ処理でネストした優先度指定を解釈しないため、`mkDefault` は直接埋め込まず、このオプションで解決した値を渡す。API キー方式のプロバイダーを使う場合、API の利用料金は通常のチャットの月額契約とは別途発生する。
 
 ### 4. 手動で接続を確認する
 
@@ -89,6 +89,32 @@ hermes gateway
 まずツールを使わない簡単な会話を試す。許可していないユーザーが利用できないことも確認する。終了は `Ctrl-C`。
 
 トークンを更新した場合は `secrets.env` を編集 → switch → Gateway を再起動する。接続しない場合はトークン、Message Content Intent、招待先チャンネルの権限、許可ユーザー ID を確認する。
+
+## 外部からモデルを変更する (LiteLLM Proxy の例)
+
+利用するホストの Nix 設定 (個人 Mac なら `nix/hosts/raita-mba.nix`) や、この flake を読み込む側のモジュールに追加する:
+
+```nix
+home-manager.users."<ユーザー名>".dotfiles.hermes.model = {
+  provider = "custom";
+  default = "hermes-default";
+  base_url = "http://127.0.0.1:4000/v1";
+  api_mode = "chat_completions";
+};
+```
+
+`default` は LiteLLM 側で公開したモデル名・エイリアスに合わせ、`base_url` は利用する Proxy の URL に置き換える。プロバイダーを変える場合は接続先も合わせて上書きし、Codex 用の URL を残さない。リモートの Proxy には HTTPS を使う。
+
+Proxy が API キーを要求する場合は、`~/.config/hermes/secrets.env` に以下を追加する。ここで使うのは LiteLLM Proxy のキーであり、ChatGPT の OAuth トークンやモデル提供元の API キーではない。
+
+```dotenv
+OPENAI_BASE_URL=http://127.0.0.1:4000/v1
+OPENAI_API_KEY=<LiteLLM Proxy のキー>
+```
+
+`OPENAI_BASE_URL` は Nix の `base_url` と同じ URL にする。Hermes はキーの意図しない送信を防ぐため接続先との対応を確認するので、キーだけを追加しない。秘密情報は Nix に書かない。
+
+switch 後に `hermes config get model` で接続先とモデル名を確認し、`hermes` で会話を試す。Gateway を常駐させている場合は再起動する。LiteLLM 側で `hermes-default` の接続先モデルを切り替える運用なら、Hermes 側のモデル名を変える必要はない。LiteLLM Proxy の導入・設定はこのリポジトリの管理対象外で、実接続は未検証。
 
 ## 常駐化 (任意)
 
