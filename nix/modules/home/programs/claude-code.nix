@@ -12,6 +12,7 @@ let
   claude = lib.getExe pkgs.claude-code;
   jq = lib.getExe pkgs.jq;
   checkJsonschema = lib.getExe pkgs.check-jsonschema;
+  herdrAutoName = "${lib.getExe pkgs.nodejs} ${lib.escapeShellArg "${config.dotfiles.dir}/claude/hooks/herdr-auto-name.mjs"} ${claude}";
   jsonFormat = pkgs.formats.json { };
 
   settingsFile = jsonFormat.generate "claude-settings.json" config.dotfiles.claudeCode.settings;
@@ -54,6 +55,30 @@ in
     permissions.defaultMode = "auto";
     skipDangerousModePermissionPrompt = true;
     theme = "dark";
+    hooks = {
+      Stop = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = herdrAutoName;
+              async = true;
+            }
+          ];
+        }
+      ];
+    }
+    // lib.genAttrs [ "UserPromptSubmit" "SessionEnd" ] (_: [
+      {
+        hooks = [
+          {
+            type = "command";
+            command = herdrAutoName;
+            timeout = 5;
+          }
+        ];
+      }
+    ]);
   };
 
   config.home.packages = [ pkgs.claude-code ];
