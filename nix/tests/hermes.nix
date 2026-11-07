@@ -7,11 +7,11 @@ let
   username = base.config.dotfiles.username;
   home = base.config.home-manager.users.${username};
   cfg = home.services.hermes-agent;
-  enabledHome =
+  disabledHome =
     (base.extendModules {
       modules = [
         {
-          home-manager.users.${username}.services.hermes-agent.gateway.enable = true;
+          home-manager.users.${username}.services.hermes-agent.gateway.enable = lib.mkForce false;
         }
       ];
     }).config.home-manager.users.${username};
@@ -34,8 +34,16 @@ let
       expr = home.programs.hermes-agent.enable;
       expected = true;
     };
-    testGatewayOptIn = {
-      expr = builtins.hasAttr "hermes-agent" home.launchd.agents;
+    testHostGatewayEnabled = {
+      expr = cfg.gateway.enable;
+      expected = true;
+    };
+    testGatewayOptOut = {
+      expr = disabledHome.services.hermes-agent.gateway.enable;
+      expected = false;
+    };
+    testGatewayOptOutRemovesLaunchd = {
+      expr = builtins.hasAttr "hermes-agent" disabledHome.launchd.agents;
       expected = false;
     };
     testPrivateEnvironmentFile = {
@@ -79,12 +87,12 @@ let
       expr = cfg.workingDirectory;
       expected = "${home.home.homeDirectory}/hermes-workspace";
     };
-    testLaunchdOptIn = {
-      expr = enabledHome.launchd.agents.hermes-agent.config.RunAtLoad;
+    testHostLaunchdRunAtLoad = {
+      expr = home.launchd.agents.hermes-agent.config.RunAtLoad;
       expected = true;
     };
     testLaunchdLabel = {
-      expr = enabledHome.launchd.agents.hermes-agent.config.Label;
+      expr = home.launchd.agents.hermes-agent.config.Label;
       expected = "org.nix-community.home.hermes-agent";
     };
     testDiscordCask = {

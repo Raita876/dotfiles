@@ -4,6 +4,8 @@
     hostname = "raita-mba";
   };
 
+  home-manager.users."raita".services.hermes-agent.gateway.enable = true;
+
   homebrew = {
     casks = [
       "discord"
