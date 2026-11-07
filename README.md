@@ -83,6 +83,14 @@ PDF / PPTX 出力にはブラウザーが必要。この構成では Homebrew �
 
 通常の PPTX 出力は各ページが画像になるため、Google スライドに取り込んでも本文を個別編集できない。修正は Markdown 側で行って再出力する。
 
+## CI の Nix キャッシュ
+
+`Build` と `Update flake.lock` は、共通の `.github/actions/setup-nix` で Nix をインストールし、`nix-community/cache-nix-action` で Nix store を復元する。成功したビルドの後に保存し、キャッシュの有無にかかわらず検証・ビルドは実行する。
+
+キャッシュキーは OS・CPU アーキテクチャと、`flake.lock`、Nix 設定、skills、templates、CI 設定のハッシュから作る。完全一致がなくても同じ OS・CPU の過去のキャッシュを復元し、入力が変わっていない成果物を再利用する。日次更新では、PR 作成処理が作業ツリーを戻す前に更新後の `flake.lock` をキーに保存する。
+
+保存前の GC は store を 6 GiB 以下にすることを目標にするが、GC root から参照される成果物は残るため、容量の上限ではない。ビルド依存関係の成果物も再利用できるよう `keep-outputs` を有効にしている。キャッシュは GitHub Actions 内でのみ利用でき、手元の Mac とは共有しない。初回や依存関係の更新時は再ビルドが必要になる。
+
 ## 依存関係の自動更新
 
 GitHub Actions と `nix/packages/pi-extensions/` の npm パッケージは、Dependabot が週次で更新 PR を作成する (`.github/dependabot.yml`)。Actions はまとめて、npm は minor / patch をまとめて更新し、npm の major 更新は個別 PR にする。自動マージは行わない。
