@@ -37,6 +37,8 @@ in
       upgrade = lib.mkDefault false;
     };
 
+    taps = [ "anomalyco/tap" ];
+
     brews = [
       "colima"
       "docker"
@@ -45,6 +47,7 @@ in
     ];
 
     casks = [
+      "anomalyco/tap/hex"
       "ghostty"
       "google-chrome"
       "keyboardcleantool"
