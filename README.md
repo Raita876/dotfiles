@@ -319,6 +319,26 @@ security-audit skill を使い、このコードベースを quick プロファ�
 
 上流を更新する際は `nix/modules/home/options.nix` の `rev` と `hash` を更新し、`nix build .#checks.aarch64-darwin.agent-skills --print-build-logs` で配置元と上流の validator テストを確認してから `switch` する。ローカルの `agents/skills/` は従来どおり編集即反映の symlink で、外部の `security-audit` は読み取り専用の固定ソースになる。
 
+## 共通の DB 設計レビュー
+
+[hugoassisj/argus-db](https://github.com/hugoassisj/argus-db) を Claude Code・Codex・Pi 共通の `argus-db` skill として使う。`nix/modules/home/options.nix` の `fetchFromGitHub` でコミットとハッシュを固定し、`skills/review/` 全体（`FRAMEWORK.md`、`lenses/`、`references/`）と MIT ライセンスを Nix store に配置する。汎用の `review` という名前との衝突を避けるため、`SKILL.md` の `name` のみ `argus-db` に変更する。Claude 用プラグインの追加インストールは不要。
+
+マージ後に dotfiles を更新して `nix run .#switch` を実行する（Pi は終了してから適用し、起動し直す）。Claude Code は `~/.claude/skills/argus-db`、Codex と Pi は `~/.agents/skills/argus-db` から読む。既存セッションで見つからなければ新しいセッションを開始する。
+
+```text
+argus-db skill を使い、prisma/schema.prisma 全体を audit mode、single-pass でレビューしてください。
+正規化、更新異常、EAV、ポリモーフィック関連、制約とカーディナリティを重点的に確認してください。
+業務上の関数従属性や履歴保持の意図は推測で断定せず、不明点として報告してください。
+コード変更や DB 接続はせず、指摘ごとに根拠箇所・影響・修正案・トレードオフ・確信度を示してください。
+```
+
+- 引数なしは未コミット差分のレビュー。スキーマ全体を対象にする場合は、上の例のようにファイルのパスと audit mode を明示する。CLI の呼び出し構文は各エージェントに従う（Pi は `/skill:argus-db`）。この配置ではプラグイン用の `/argus:review` は提供しない。
+- PostgreSQL / Prisma が主軸。他の DB / ORM では対応する仕様を確認し、上流のヒューリスティックを一律の設計ルールとして扱わない。インデックスや非正規化の提案にはアクセスパターンとトレードオフが必要。
+- 既定の single-pass は委譲不要。`--board` は独立した複数 reviewer を使うため、明示的に依頼し、エージェント側で利用可能な委譲ツールに上流の `Task` を対応付ける必要がある。skill の配置だけでツールは追加されない。
+- DB 接続なしの静的レビューが可能。実 DB の確認は別途許可が必要で、本番への `EXPLAIN ANALYZE` や書き込みを自動実行させない。
+
+上流を更新する際は `rev` と `hash` を更新し、`nix build .#checks.aarch64-darwin.agent-skills --print-build-logs` で共通の配置先・skill 名・参照資料の存在を確認してから `switch` する。このテストは配置の検証であり、LLM のレビュー精度は検証しない。
+
 ## 共通の PR レビュー
 
 `agents/skills/pr-review/` は Claude Code・Codex・Pi 共通の skill。既存の skill 配置規則により、Claude Code には `~/.claude/skills/pr-review`、Codex と Pi には `~/.agents/skills/pr-review` として配置する。レビュー指示は独自に記述しており、他の環境でもこの skill ディレクトリをコピーすれば使える。git と、PR モードでは認証済みの gh が必要。
