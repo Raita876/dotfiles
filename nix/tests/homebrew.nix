@@ -96,9 +96,20 @@ let
         "docker-compose"
       ];
     };
+    testHexTap = {
+      expr = builtins.any (tap: tap.name == "anomalyco/tap") baseline.taps;
+      expected = true;
+    };
+    testHexBrewfile = {
+      expr =
+        lib.hasInfix ''tap "anomalyco/tap"'' baseline.brewfile
+        && lib.hasInfix ''cask "anomalyco/tap/hex"'' baseline.brewfile;
+      expected = true;
+    };
     testDefaultCasks = {
       expr = sorted (names baseline.casks);
       expected = sorted [
+        "anomalyco/tap/hex"
         "ghostty"
         "google-chrome"
         "keyboardcleantool"
