@@ -101,6 +101,7 @@ let
       expected = sorted [
         "ghostty"
         "google-chrome"
+        "keyboardcleantool"
         "notion"
         "zoom"
         "visual-studio-code"

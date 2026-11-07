@@ -47,6 +47,7 @@ in
     casks = [
       "ghostty"
       "google-chrome"
+      "keyboardcleantool"
       "notion"
       "zoom"
     ];
