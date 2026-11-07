@@ -36,6 +36,7 @@ jobs:
               - 'nix/**'
               - 'agents/skills/**'
               - 'templates/**'
+              - '.github/actions/**'
               - '.github/workflows/**'
 
   build:
@@ -47,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - uses: ./.github/actions/setup-nix
 
       - name: Check flake
         run: nix flake check --show-trace
@@ -55,3 +56,9 @@ jobs:
       # switch はシステムを書き換えるので CI では実行せず、その中身のビルドが通るかだけを見る
       - name: Build system
         run: nix build .#darwinConfigurations.raita-mba.system --print-build-logs --show-trace
+
+      - name: Save Nix store
+        uses: nix-community/cache-nix-action/save@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
+        with:
+          primary-key: nix-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock', 'flake.nix', 'nix/**', 'agents/skills/**', 'templates/**', '.github/actions/**', '.github/workflows/**') }}
+          gc-max-store-size-macos: 6G
