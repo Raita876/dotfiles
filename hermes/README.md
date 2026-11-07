@@ -14,7 +14,7 @@ Hermes は公式 Nix flake の `messaging` パッケージと Home Manager モ�
 
 switch 時に公式モジュールが `~/.hermes/config.yaml` へ宣言した設定をマージし、`.env` を非秘密設定と `secrets.env` から再生成する。`.env` への直接編集は次の switch で失われるため、トークン・許可ユーザー・API キーは必ず `secrets.env` に書く。既存の Hermes を移行する場合、先に `.env` を安全な場所へ退避し、必要な値を `secrets.env` へ移す。
 
-記憶・履歴・`auth.json` はリポジトリに取り込まない。既定のプロバイダーは `openai-codex`、モデルは `gpt-6.1-sol` とし、Nix で管理する。ChatGPT アカウントでの OAuth 認証はローカルで行う。Gateway の自動起動は認証前の起動を避けるため既定で無効。
+記憶・履歴・`auth.json` はリポジトリに取り込まない。既定のプロバイダーは `openai-codex`、モデルは `gpt-6.1-sol` とし、Nix で管理する。ChatGPT アカウントでの OAuth 認証はローカルで行う。Gateway の自動起動は共通設定では無効にし、個人ホスト `raita-mba` だけで有効にしている。switch 後はログインユーザー用の launchd agent として起動する。
 
 ## 初回セットアップ
 
@@ -52,6 +52,8 @@ OpenAI Codex は次の手順で OAuth 認証するため、`OPENROUTER_API_KEY` 
 
 ### 3. 適用し、OpenAI Codex を認証する
 
+`raita-mba` では switch 時に Gateway も自動起動する。既に認証・秘密情報の設定が済んでいればそのまま適用してよい。未認証の初回セットアップでは、先に `nix/hosts/raita-mba.nix` の `gateway.enable` を一時的に `false` にし、手動での動作確認後に `true` へ戻す。
+
 マージ後、通常の dotfiles で実行する (Pi は終了し、通常のターミナルから switch する):
 
 ```sh
@@ -78,7 +80,11 @@ hermes
 
 Home Manager 管理下では `hermes model` からモデル設定を保存できない。プロバイダー・モデルを変更する場合は、ホスト設定やこの flake を読み込む側から `dotfiles.hermes.model` を上書きして switch する。この型付きオプションの既定値は各項目に `lib.mkDefault` を指定しているため、通常の値の指定で上書きでき、`lib.mkForce` は不要。上流の `services.hermes-agent.settings` は独自のマージ処理でネストした優先度指定を解釈しないため、`mkDefault` は直接埋め込まず、このオプションで解決した値を渡す。API キー方式のプロバイダーを使う場合、API の利用料金は通常のチャットの月額契約とは別途発生する。
 
-### 4. 手動で接続を確認する
+### 4. Discord の接続を確認する
+
+`raita-mba` で常駐化が有効なら、switch で起動した Bot にそのまま送信して確認する。`hermes gateway` を重ねて起動しない。ログ・再起動の操作は後述の「常駐化」を参照する。
+
+初回セットアップなどで常駐化を無効にしている場合だけ、手動で起動する:
 
 ```sh
 hermes gateway
@@ -86,7 +92,7 @@ hermes gateway
 
 許可したユーザーから Bot に DM、またはサーバー内で `@Bot` を送る。サーバーではメンション必須、他 Bot からの入力は無効、共有チャンネルのセッションはユーザー別にしている。
 
-まずツールを使わない簡単な会話を試す。許可していないユーザーが利用できないことも確認する。終了は `Ctrl-C`。
+まずツールを使わない簡単な会話を試す。許可していないユーザーが利用できないことも確認する。手動起動した場合の終了は `Ctrl-C`。
 
 トークンを更新した場合は `secrets.env` を編集 → switch → Gateway を再起動する。接続しない場合はトークン、Message Content Intent、招待先チャンネルの権限、許可ユーザー ID を確認する。
 
@@ -116,9 +122,9 @@ OPENAI_API_KEY=<LiteLLM Proxy のキー>
 
 switch 後に `hermes config get model` で接続先とモデル名を確認し、`hermes` で会話を試す。Gateway を常駐させている場合は再起動する。LiteLLM 側で `hermes-default` の接続先モデルを切り替える運用なら、Hermes 側のモデル名を変える必要はない。LiteLLM Proxy の導入・設定はこのリポジトリの管理対象外で、実接続は未検証。
 
-## 常駐化 (任意)
+## 常駐化
 
-手動起動のプロセスを止め、利用するホストの Nix 設定に次を追加して switch する:
+`nix/hosts/raita-mba.nix` では以下を設定済み。共通モジュールでは無効のままなので、ほかのホストで利用する場合は明示的に有効化する。手動起動の Gateway があれば `Ctrl-C` で止めてから switch し、二重起動を避ける:
 
 ```nix
 home-manager.users."<ユーザー名>".services.hermes-agent.gateway.enable = true;
@@ -126,7 +132,14 @@ home-manager.users."<ユーザー名>".services.hermes-agent.gateway.enable = tr
 
 公式モジュールが macOS のログインユーザー用 launchd agent を作成する。`hermes gateway install` で別のサービスを重ねて登録しない。ログは `~/Library/Logs/hermes-agent.log` と `~/Library/Logs/hermes-agent.err.log`。ログアウト・スリープ中も動作するサーバーではない。
 
-無効化する場合は同オプションを `false` に戻して switch する。常駐時に設定・認証を更新した後は launchd のプロセスも再起動する:
+ログを確認する:
+
+```sh
+tail -f ~/Library/Logs/hermes-agent.log \
+        ~/Library/Logs/hermes-agent.err.log
+```
+
+無効化する場合はホスト設定の同オプションを `false` に変更して switch する。常駐時に設定・認証を更新した後は launchd のプロセスも再起動する:
 
 ```sh
 launchctl kickstart -k "gui/$(id -u)/org.nix-community.home.hermes-agent"
