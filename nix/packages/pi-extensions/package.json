@@ -5,13 +5,13 @@
   "dependencies": {
     "@juicesharp/rpiv-ask-user-question": "2.15.0",
     "@juicesharp/rpiv-todo": "2.15.0",
-    "@narumitw/pi-goal": "0.54.14",
-    "billion-context": "0.1.209",
-    "cc-safety-net": "2.7.1",
-    "pi-btw": "0.8.0",
+    "@narumitw/pi-goal": "0.54.15",
+    "billion-context": "0.1.212",
+    "cc-safety-net": "2.7.3",
+    "pi-btw": "0.8.1",
     "pi-lsp": "0.1.7",
-    "pi-open-tui": "0.3.14",
-    "pi-subagents": "0.84.0",
-    "pi-web-access": "0.46.0"
+    "pi-open-tui": "0.4.2",
+    "pi-subagents": "0.85.0",
+    "pi-web-access": "0.47.0"
   }
 }
