@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "job_id": "<生成した UUID>",
+  "requester_id": "<受信コンテキストのユーザー ID>",
+  "channel_id": "<受信コンテキストのチャンネル ID>",
+  "thread_id": null,
+  "request_message_id": "<受信コンテキストの依頼メッセージ ID>",
+  "summary": "<秘密情報を含まない短い作業名>",
+  "working_directory": "<確認済みの絶対パス>",
+  "space_name": "<作成時の名前>",
+  "space_id": null,
+  "tab_id": null,
+  "terminal_id": null,
+  "status": "creating",
+  "approval": null,
+  "last_error": null,
+  "updated_at": "<ISO 8601 日時>"
+}

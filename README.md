@@ -235,6 +235,8 @@ Hermes は公式 Nix flake の Discord 依存関係を含む `messaging` パッ�
 
 新規 skill の配置には、マージ後に通常の dotfiles で `nix run .#switch` を実行する。Claude Code は `~/.claude/skills/herdr-desktop`、Codex と Pi は `~/.agents/skills/herdr-desktop` から読む。実行中のエージェントに見えなければ、新しいセッションを開始する。skill の追加だけなら Herdr 自体の再起動や環境変数の手動設定は不要。
 
+Hermes には同じ `herdr-desktop` と専用 `herdr-workflow` を `~/.hermes/skills/` に配置する。Discord から作業を依頼すると新規 Space の Pi に委譲し、結果を報告して明示的な終了承諾を待つ。共通 `agents/AGENTS.md` と Hermes 用の方針を `SOUL.md` に結合する方法、反映手順、長時間作業の制限は [hermes/README.md](hermes/README.md#herdr-で作業し人間の承諾後に-space-を閉じる) を参照。
+
 ### Herdr のショートカット
 
 Herdr の macOS アプリ版のキー設定を `herdr/keys.json` で管理する。`⌘N` は `herdr/mods/pi-space/` を介して Pi 入りのスペースを作成する。`settings.json` は Nix で宣言的に管理し、テレメトリを無効化する。既存設定とのマージは行わないため、残したい設定は適用前に Nix へ追加する。適用前に Herdr を終了し、別のターミナルから `switch` した後に起動し直す。cmux との対応と差分、テレメトリの詳細は [herdr/README.md](herdr/README.md) を参照。

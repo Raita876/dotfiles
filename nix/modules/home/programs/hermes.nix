@@ -1,4 +1,10 @@
 { config, lib, ... }:
+let
+  soul =
+    builtins.readFile ../../../../agents/AGENTS.md
+    + "\n\n"
+    + builtins.readFile ../../../../hermes/SOUL.md;
+in
 {
   options.dotfiles.hermes.model = lib.mkOption {
     type = lib.types.attrsOf lib.types.str;
@@ -15,7 +21,13 @@
 
     programs.hermes-agent.enable = true;
 
+    home.file = {
+      ".hermes/skills/herdr-desktop".source = config.lib.dotfiles.agentSkillSources.herdr-desktop;
+      ".hermes/skills/herdr-workflow".source = config.lib.dotfiles.link "hermes/skills/herdr-workflow";
+    };
+
     services.hermes-agent = {
+      hermesHomeFiles."SOUL.md" = soul;
       enable = true;
       gateway.enable = lib.mkDefault false;
       workingDirectory = "${config.home.homeDirectory}/hermes-workspace";
