@@ -172,7 +172,7 @@ launchctl kickstart -k "gui/$(id -u)/org.nix-community.home.hermes-agent"
 
 ### 利用例
 
-1. Discord で依頼する: 「`/Users/raita/Repository/example` の不具合を修正して。テストまで行い、PR を作成してください」
+1. Discord で依頼する: 「`~/Repository/example` の不具合を修正して。テストまで行い、PR を作成してください」
 2. Hermes が新規 Space を作り、Pi に依頼する。単なる質問や進捗確認では新規作成しない。
 3. 待機後に結果を回収する。時間内に終わらなければジョブ ID と進捗を返すので、「ジョブ … の状況を確認して」と依頼する。
 4. 報告を確認し、追加修正は同じジョブへ依頼する。修正後は改めて承諾待ちになる。
