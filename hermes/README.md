@@ -8,6 +8,8 @@ Hermes は公式 Nix flake の `messaging` パッケージと Home Manager モ�
 
 - 本体と Discord 用 Python 依存関係: `flake.nix` / `flake.lock`
 - 連携設定: `nix/modules/home/programs/hermes.nix`
+- 基本方針: 共通 `agents/AGENTS.md` と `hermes/SOUL.md` を結合して `~/.hermes/SOUL.md` に配置
+- Skill: 共通 `herdr-desktop` と Hermes 専用 `herdr-workflow` を `~/.hermes/skills/` に配置
 - 状態・記憶・認証: `~/.hermes/` (Git 管理外)
 - 秘密情報の入力元: `~/.config/hermes/secrets.env` (Git 管理外、Nix store にも入れない)
 - 作業ディレクトリ: `~/hermes-workspace`
@@ -144,6 +146,47 @@ tail -f ~/Library/Logs/hermes-agent.log \
 ```sh
 launchctl kickstart -k "gui/$(id -u)/org.nix-community.home.hermes-agent"
 ```
+
+## Herdr で作業し、人間の承諾後に Space を閉じる
+
+Hermes は依頼の受付役、Herdr の Space 内で動く Pi は実作業役とする。Discord のセッションが端末へ移動するのではなく、目的・作業先・制約・完了条件を渡して委譲する。
+
+- 共通ルールの正本は `agents/AGENTS.md`。Hermes はほかのエージェント用の配置先を自動では読まないため、Nix で `hermes/SOUL.md` と結合する。共通ルールを手動コピーしない。
+- `hermes/SOUL.md` は口調と受付役の方針。プロジェクト固有のルールは各リポジトリの `AGENTS.md` に置き、実作業役に確認させる。
+- 共通 `agents/skills/herdr-desktop/` は操作手順の正本として共有する。受付から終了までの運用は `hermes/skills/herdr-workflow/` に分離する。ほかの Skill は互換性確認なしに全配布しない。
+- `SOUL.md` は switch 時に上書きされる。独自に編集済みなら適用前に退避し、必要な方針を dotfiles 側に取り込む。Skill はリポジトリへの symlink で、Hermes による自己編集ではなく dotfiles で管理する。
+
+### 反映と前提
+
+Herdr のウィンドウを開き、Pi が利用可能で認証済みであることを確認する。常駐 Gateway の PATH は通常のターミナルと異なるため、Skill は `/opt/homebrew/bin/herdr-app`、`~/.local/bin/herdr-core`、ユーザーの Nix プロファイル内の Pi なども確認し、検証した絶対パスを使う。見つからなければ処理を止めて報告する。アプリ・core の起動や更新を自動で行わない。
+
+新規の Skill を配置するには、マージ後に Pi を終了した通常のターミナルで実行する:
+
+```sh
+cd ~/Repository/dotfiles
+nix run .#switch
+launchctl kickstart -k "gui/$(id -u)/org.nix-community.home.hermes-agent"
+```
+
+新しい Discord の会話で方針が読み込まれていることを確認する。既存の Skill と同名のローカルファイルがあれば、Home Manager の衝突を解消する前に退避する。`~/.hermes/skills/` 全体を置き換えないため、ほかのローカル Skill は保持される。
+
+### 利用例
+
+1. Discord で依頼する: 「`/Users/raita/Repository/example` の不具合を修正して。テストまで行い、PR を作成してください」
+2. Hermes が新規 Space を作り、Pi に依頼する。単なる質問や進捗確認では新規作成しない。
+3. 待機後に結果を回収する。時間内に終わらなければジョブ ID と進捗を返すので、「ジョブ … の状況を確認して」と依頼する。
+4. 報告を確認し、追加修正は同じジョブへ依頼する。修正後は改めて承諾待ちになる。
+5. 問題がなければ「ジョブ … の作業を承諾します。その Space を閉じて」と指示する。Space を閉じると端末も終了する。PR のマージや worktree 削除は別操作で、自動実行しない。
+
+作業完了だけでは閉じず、「OK」「ありがとう」だけでも閉じない。保存した依頼者・依頼元・対象と実状態を照合し、明示承諾が取れた場合だけ終了する。依頼者の本人確認に必要な受信コンテキストを取得できない場合も閉じない。
+
+### 状態と制限
+
+ジョブ状態は `~/.hermes/herdr-jobs/<UUID>.json`（独自の `HERMES_HOME` を使う場合はその配下）に記録する。例は `hermes/skills/herdr-workflow/job.example.json`。依頼元・Space・タブ・端末 ID を保存し、再起動後は実状態と照合する。認証情報やタスク全文は保存しない。この状態は Git 管理外で、switch 時にも生成・上書きしない。
+
+今回は Skill に従ってモデルが状態を記録・照合する半自動運用であり、専用のジョブ管理デーモンや機械的な承諾検証は導入しない。長時間作業は一度だけ待機して途中経過を返し、次の進捗確認で回収する。Discord への自動完了通知、ターンをまたぐ監視、Gateway 再起動後の自動回収は保証しない。
+
+Nix のテストは配置・方針の結合・ジョブ形式の例を検証するもので、モデルが必ず手順を守ることや、Discord → Herdr → 終了承諾の実接続を検証するものではない。初回は変更不要の小さな調査依頼で、Space 作成・結果回収・明示承諾後の終了を確認する。承認設定は引き続き維持し、権限ダイアログを自動で通過させない。
 
 ## 安全性
 

@@ -46,6 +46,26 @@ let
       expr = builtins.hasAttr "hermes-agent" disabledHome.launchd.agents;
       expected = false;
     };
+    testSharedRulesAndHermesSoul = {
+      expr = cfg.hermesHomeFiles."SOUL.md";
+      expected =
+        builtins.readFile ../../agents/AGENTS.md + "\n\n" + builtins.readFile ../../hermes/SOUL.md;
+    };
+    testSelectedHermesSkills = {
+      expr = builtins.filter (lib.hasPrefix ".hermes/skills/") (builtins.attrNames home.home.file);
+      expected = [
+        ".hermes/skills/herdr-desktop"
+        ".hermes/skills/herdr-workflow"
+      ];
+    };
+    testSharedHerdrSkill = {
+      expr = toString home.home.file.".hermes/skills/herdr-desktop".source;
+      expected = toString home.lib.dotfiles.agentSkillSources.herdr-desktop;
+    };
+    testHermesWorkflowSkill = {
+      expr = toString home.home.file.".hermes/skills/herdr-workflow".source;
+      expected = toString (home.lib.dotfiles.link "hermes/skills/herdr-workflow");
+    };
     testPrivateEnvironmentFile = {
       expr = cfg.environmentFiles;
       expected = [ "${home.home.homeDirectory}/.config/hermes/secrets.env" ];
@@ -109,5 +129,20 @@ pkgs.runCommand "hermes-tests" { } ''
   ${lib.getExe home.programs.hermes-agent.package} --help > "$TMPDIR/help.txt"
   grep -q gateway "$TMPDIR/help.txt"
   ${home.programs.hermes-agent.package.hermesVenv}/bin/python3 -c 'import discord; import plugins.platforms.discord'
+  ${home.programs.hermes-agent.package.hermesVenv}/bin/python3 - <<'PY'
+  import json
+  from pathlib import Path
+
+  workflow = Path("${../../hermes/skills/herdr-workflow}")
+  skill = (workflow / "SKILL.md").read_text()
+  assert "name: herdr-workflow" in skill
+  assert "awaiting_approval" in skill
+  assert "space.close" in skill
+  example = json.loads((workflow / "job.example.json").read_text())
+  assert example["version"] == 1
+  assert example["status"] == "creating"
+  assert example["approval"] is None
+  assert all(example[key] is None for key in ("space_id", "tab_id", "terminal_id"))
+  PY
   touch "$out"
 ''
