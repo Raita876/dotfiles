@@ -20,7 +20,9 @@ export function conversation(entries) {
 
 export function titleFrom(text) {
   if (typeof text !== "string") return null;
-  const title = text.trim().replace(/^["'「『]|["'」』]$/gu, "");
+  // haiku が短い会話でタイトルの後に補足行を付けることがあり、全体を捨てると Space が無名のまま残る。
+  const line = text.split(/\r?\n/u).map((item) => item.trim()).find(Boolean) ?? "";
+  const title = line.replace(/^["'「『]|["'」』]$/gu, "");
   if (!title || /[\p{Cc}\p{Cf}\n\r`<>]/u.test(title) || [...title].length > 60) return null;
   return title;
 }
