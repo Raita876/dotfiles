@@ -10,7 +10,8 @@
 
 ## TODO リスト
 
-- 単発の質問への回答を除き、作業を始める前に TODO リストを作り、着手・完了のたびに更新する (Claude Code では TaskCreate / TaskUpdate)
+- 単発の質問への回答を除き、作業を始める前に TODO リストを作り、着手・完了のたびに更新する
+- Claude Code では TaskCreate / TaskUpdate を使う。遅延ロードのツールになっているときは、最初に ToolSearch で `select:TaskCreate,TaskUpdate` を読み込む
 
 ## Git 操作
 
