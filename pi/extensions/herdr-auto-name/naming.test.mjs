@@ -47,7 +47,9 @@ test("conversation length is bounded", () => {
 
 test("only short plain titles are accepted", () => {
   assert.equal(titleFrom("「ログインの修正」"), "ログインの修正");
-  for (const text of ["", "a\nb", "a\u001bb", "a\u200bb", "x".repeat(61), "<title>", "`title`", null]) {
+  assert.equal(titleFrom("挨拶\n\"こんにちは\""), "挨拶");
+  assert.equal(titleFrom("\n  認証の修正  \r\n補足"), "認証の修正");
+  for (const text of ["", "\n\n", "a\u001bb", "a\u200bb", "x".repeat(61), "<title>", "`title`", null]) {
     assert.equal(titleFrom(text), null);
   }
 });
