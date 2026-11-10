@@ -24,6 +24,12 @@ in
     description = "~/.claude/settings.json に switch のたびに書き込む設定。ここに無いキーは Claude Code が書いた値のまま残る";
   };
 
+  options.dotfiles.claudeCode.herdrAutoName.enable = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+    description = "Herdr Space の自動命名用 hook を登録する";
+  };
+
   options.dotfiles.claudeCode.marketplaces = lib.mkOption {
     type = lib.types.attrsOf lib.types.str;
     default = { };
@@ -50,37 +56,41 @@ in
     "pr-review-toolkit@claude-plugins-official"
   ];
 
-  config.dotfiles.claudeCode.settings = lib.mapAttrsRecursive (_: lib.mkDefault) {
-    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-    permissions.defaultMode = "auto";
-    skipDangerousModePermissionPrompt = true;
-    theme = "dark";
-    env.CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
-    hooks = {
-      Stop = [
+  config.dotfiles.claudeCode.settings = lib.mkMerge [
+    (lib.mapAttrsRecursive (_: lib.mkDefault) {
+      "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+      permissions.defaultMode = "auto";
+      skipDangerousModePermissionPrompt = true;
+      theme = "dark";
+      env.CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
+    })
+    (lib.mkIf cfg.herdrAutoName.enable {
+      hooks = {
+        Stop = [
+          {
+            hooks = [
+              {
+                type = "command";
+                command = herdrAutoName;
+                async = true;
+              }
+            ];
+          }
+        ];
+      }
+      // lib.genAttrs [ "UserPromptSubmit" "SessionEnd" ] (_: [
         {
           hooks = [
             {
               type = "command";
               command = herdrAutoName;
-              async = true;
+              timeout = 5;
             }
           ];
         }
-      ];
-    }
-    // lib.genAttrs [ "UserPromptSubmit" "SessionEnd" ] (_: [
-      {
-        hooks = [
-          {
-            type = "command";
-            command = herdrAutoName;
-            timeout = 5;
-          }
-        ];
-      }
-    ]);
-  };
+      ]);
+    })
+  ];
 
   config.home.packages = [ pkgs.claude-code ];
 

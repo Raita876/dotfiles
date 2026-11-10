@@ -72,6 +72,11 @@
       };
 
       checks.${system} = {
+        claude-code = import ./nix/tests/claude-code.nix {
+          inherit (nixpkgs) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
+          base = self.darwinConfigurations.raita-mba;
+        };
         homebrew = import ./nix/tests/homebrew.nix {
           inherit (nixpkgs) lib;
           pkgs = nixpkgs.legacyPackages.${system};

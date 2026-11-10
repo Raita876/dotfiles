@@ -186,8 +186,9 @@ direnv allow                                   # 以後 cd するだけで読み
 | 種類 | 値 | 変え方 |
 |---|---|---|
 | 端末ごとの値 | `dotfiles.username` / `hostname` (必須)、`homedir`、`dir`、`dock.apps` / `dock.others`、`cmux.agent` (cmux で起動するエージェント。`"pi"` (既定)、`"claude"`、`"codex"`) | そのまま書く。Dock は指定すると丸ごと置き換わる |
-| 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*`、`programs.pi-coding-agent.settings.defaultProvider` / `defaultModel` | そのまま書けば上書きされる |
+| 初期値 (mkDefault) | `homebrew.onActivation.*`、`nix.gc.*`、`nix.package`、`networking.*Name`、`security.pam.services.sudo_local.touchIdAuth`、`system.defaults.*`、git の `user.name` / `user.email`、gh の `git_protocol`、`dotfiles.claudeCode.settings.*` (hooks を除く)、`programs.pi-coding-agent.settings.defaultProvider` / `defaultModel` | そのまま書けば上書きされる |
 | Homebrew のリスト | `homebrew.brews` / `casks` / `vscode` | 書いた分が追加される。個別に外すには `dotfiles.homebrew.exclude.brews` / `casks` / `vscode` に名前を書く。一覧全体の置き換えには `lib.mkForce` を使う (除外指定は置き換え後にも適用される) |
+| Claude Code の hooks | `dotfiles.claudeCode.settings.hooks.<イベント>` | 同じイベントのリストに書いた分が連結される。Herdr 自動命名の 3 hook をまとめて無効にするには `dotfiles.claudeCode.herdrAutoName.enable = false;`。イベントのリスト全体を置き換える場合は `lib.mkForce` を使う |
 | その他のリスト | `home.packages`、`dotfiles.claudeCode.plugins`、`dotfiles.claudeCode.extraSkills` (名前 → ディレクトリ)、`nix.settings.trusted-users` など | 書いた分が追加される。外すには `lib.mkForce` でリストを丸ごと指定する |
 | 構成の前提 | `system.stateVersion`、`home.stateVersion`、`home-manager.useGlobalPkgs` / `useUserPackages`、`programs.zsh.enable` など | 違う値を書くとエラーになる。変えるなら `lib.mkForce` (基本は変えない) |
 | 共通のファイル | zshrc、zprofile、starship、cmux、Herdr の keys.json、VS Code の settings.json、CLAUDE.md、skills (このリポジトリへの symlink) | zsh は `~/.zshrc.local` に追記する。丸ごと差し替えるなら `home.file."<パス>".source` を `lib.mkForce` |
@@ -219,7 +220,7 @@ home-manager.users."<ユーザー名>".dotfiles.claudeCode = {
 };
 ```
 
-`dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。
+`dotfiles.claudeCode.settings` は switch のたびに `~/.claude/settings.json` へマージされる。ここに書いたキーが優先され、書いていないキーは Claude Code 側で変えた値のまま残る。hooks の連結は Nix モジュール間で行われ、既存 JSON の同じイベントの配列は Nix で生成した配列に置き換わる。Nix 側からイベントを削除しても、既存 JSON にだけあるイベントキーは残る。自動命名の無効化と残存 hook の扱いは [Claude Code の README](claude/README.md#無効化モデル変更) を参照。
 
 ## ツールごとの設定
 
