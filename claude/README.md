@@ -28,10 +28,23 @@ CLAUDE_HERDR_AUTO_NAME_MODEL=sonnet claude
 
 常に無効にする場合は `~/.zshrc.local` に `export CLAUDE_HERDR_AUTO_NAME=0` を設定する。機密情報を扱う場合にもこの方法で追加のモデル送信を止められる。
 
+Nix 側では、Home Manager の次のオプション (既定 `true`) で `Stop`・`UserPromptSubmit`・`SessionEnd` の自動命名 hook をまとめて登録対象から外せる。読み込む側が追加した hook は残る。
+
+```nix
+home-manager.users."<ユーザー名>".dotfiles.claudeCode.herdrAutoName.enable = false;
+```
+
+**既存ファイルへの注意:** switch は既存の `~/.claude/settings.json` に設定をマージするため、Nix からイベントキーが無くなっても、そのキーが既存 JSON にあれば残る。このオプションを `false` にするだけでは、既に書き込まれた hook を確実には停止できない。停止には `CLAUDE_HERDR_AUTO_NAME=0` を設定して Claude Code を起動し直すか、switch 後に `settings.json` の各イベントから `herdr-auto-name.mjs` を実行するエントリだけを手動で削除する。他の hook は削除しない。
+
+イベントごとの hook リストは Nix モジュール間で連結される。リスト全体を置き換えるには `lib.mkForce` を使えるが、自動命名は 3 イベントが揃って機能するため、一括切り替えには上記オプションを使う。
+
 ### テスト
 
 ```sh
+nix build .#checks.aarch64-darwin.claude-code --no-link
 node --test claude/hooks/herdr-auto-name.test.mjs pi/extensions/herdr-auto-name/naming.test.mjs
 ```
+
+Nix テストは、利用側の `Stop` との連結、3 イベントへの登録、一括無効化、スカラー初期値の上書きを検証する。
 
 生成用 CLI はスタブ、Herdr 通信は一時 Unix ソケットで検証する。実際の Space 名やモデル API は変更・呼び出ししない。
