@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, readdir, readFile, rm, utimes, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { chmod, mkdtemp, readdir, readFile, rm, symlink, utimes, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { conversation, generationOptions, handle, summarize } from "./herdr-auto-name.mjs";
 
 async function directory(t) {
@@ -29,6 +32,39 @@ function fixture(root, overrides = {}) {
   return { options, calls, target, run: (input = {}) => handle({
     hook_event_name: "Stop", last_assistant_message: "fixed login", ...input,
   }, options) };
+}
+
+for (const entry of ["direct", "file symlink", "directory symlink chain"]) {
+  test(`CLI handles stdin through ${entry}`, async (t) => {
+    const root = await directory(t);
+    const script = fileURLToPath(new URL("./herdr-auto-name.mjs", import.meta.url));
+    let path = script;
+    if (entry === "file symlink") {
+      await symlink(script, join(root, "hook.mjs"));
+      path = "./hook.mjs";
+    } else if (entry === "directory symlink chain") {
+      await symlink(fileURLToPath(new URL("../../", import.meta.url)), join(root, "home-manager-files"));
+      await symlink("home-manager-files", join(root, "dotfiles"));
+      path = "./dotfiles/claude/hooks/herdr-auto-name.mjs";
+    }
+    const terminal = "test-terminal";
+    const socket = join(root, "unused.sock");
+    const result = spawnSync(process.execPath, [path], {
+      cwd: root,
+      env: { ...process.env, CLAUDE_HERDR_AUTO_NAME: "1", XDG_CACHE_HOME: join(root, "cache"),
+        HC_TERMINAL_ID: terminal, HC_TERMINAL_SOCKET: socket },
+      input: JSON.stringify({ hook_event_name: "UserPromptSubmit" }),
+      encoding: "utf8",
+      timeout: 5000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    const key = createHash("sha256").update(`${socket}\0${terminal}`).digest("hex");
+    const generation = await readFile(join(root, "cache/dotfiles/herdr-auto-name", key, "generation"), "utf8");
+    assert.match(generation, /^[0-9a-f-]{36}$/);
+  });
 }
 
 test("extracts bounded text only and uses authoritative final response", async (t) => {
