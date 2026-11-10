@@ -8,6 +8,10 @@
 
 - 返答は基本日本語で書く
 
+## TODO リスト
+
+- 単発の質問への回答を除き、作業を始める前に TODO リストを作り、着手・完了のたびに更新する (Claude Code では TaskCreate / TaskUpdate)
+
 ## Git 操作
 
 - feature、hotfix などの作業ブランチは、特に指示やリポジトリの規約がなければ `main` を起点にする

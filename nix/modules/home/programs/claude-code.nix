@@ -63,6 +63,8 @@ in
       skipDangerousModePermissionPrompt = true;
       theme = "dark";
       env.CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
+      # TaskCreate などが遅延ロードされるとモデルが TODO リストをほぼ使わなくなるため、全ツールを最初から読み込む
+      env.ENABLE_TOOL_SEARCH = "false";
     })
     (lib.mkIf cfg.herdrAutoName.enable {
       hooks = {
