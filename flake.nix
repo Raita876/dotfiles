@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
     omp.url = "github:can1357/oh-my-pi";
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent";
+      url = "github:NousResearch/hermes-agent/1fcc57e6d23052e46265efc30b57c7e9a971e08b";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
