@@ -153,6 +153,7 @@
       "original": {
         "owner": "NousResearch",
         "repo": "hermes-agent",
+        "rev": "1fcc57e6d23052e46265efc30b57c7e9a971e08b",
         "type": "github"
       }
     },
