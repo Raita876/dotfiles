@@ -5,6 +5,16 @@
 }:
 let
   home = base.config.home-manager.users.${base.config.dotfiles.username};
+  withoutCodex =
+    (base.extendModules {
+      modules = [
+        {
+          home-manager.users.${base.config.dotfiles.username}.disabledModules = [
+            ../modules/home/programs/codex.nix
+          ];
+        }
+      ];
+    }).config.home-manager.users.${base.config.dotfiles.username};
   sources = home.lib.dotfiles.agentSkillSources;
   skill = sources.security-audit;
   argus = sources.argus-db;
@@ -16,6 +26,16 @@ let
         && toString home.home.file.".agents/skills/${name}".source == toString sources.${name}
       ) (builtins.attrNames sources);
       expected = true;
+    };
+    testSharedSkillsWithoutCodex = {
+      expr = builtins.all (
+        name: toString withoutCodex.home.file.".agents/skills/${name}".source == toString sources.${name}
+      ) (builtins.attrNames sources);
+      expected = true;
+    };
+    testCodexModuleIsDisabled = {
+      expr = builtins.hasAttr ".codex/AGENTS.md" withoutCodex.home.file;
+      expected = false;
     };
     testLocalSkillRemainsEditable = {
       expr = toString sources.pr-review;
