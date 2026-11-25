@@ -9,13 +9,14 @@ raita の macOS 環境。Nix flake (nix-darwin + home-manager) で管理する�
 | パス | 内容 |
 |---|---|
 | `flake.nix` | inputs、`darwinConfigurations."raita-mba"`、外部向けの `darwinModules.default` / `homeModules.default` |
-| `nix/modules/darwin/` | 端末ごとの値の定義 (`options.nix`)、macOS のシステム設定 (`system.nix`)、Homebrew の共通設定と単体の cask (`homebrew.nix`)、home-manager の読み込み (`home-manager.nix`) |
+| `nix/modules/darwin/` | 端末ごとの値の定義 (`options.nix`)、Nix の設定 (`nix.nix`)、macOS のシステム設定 (`system.nix`)、Homebrew の共通設定と単体の cask (`homebrew.nix`)、home-manager の読み込み (`home-manager.nix`) |
 | `nix/modules/darwin/programs/<tool>.nix` | cask と設定ファイルの両方を持つツール (VS Code、cmux、Herdr)。cask、拡張機能、symlink を 1 ファイルにまとめる |
 | `nix/hosts/raita-mba.nix` | 個人用 Mac だけの設定 (ユーザー名・ホスト名、個人用の cask と VS Code 拡張機能) |
-| `nix/modules/home/` | home-manager: 設定を持たない CLI ツール (`packages.nix`) |
+| `nix/modules/home/` | home-manager: 共通オプションと symlink ヘルパー (`options.nix`)、共通スキルの取得・配置 (`agent-skills.nix`)、設定を持たない CLI ツール (`packages.nix`) |
 | `nix/modules/home/programs/<tool>.nix` | 設定を持つツール (zsh、starship、git、gh、direnv、Claude Code、Codex、pi)。パッケージ、symlink、設定を 1 ファイルにまとめる |
 | `zsh/`, `starship/`, `cmux/`, `herdr/`, `vscode/`, `claude/`, `agents/`, `pi/` | 設定ファイル本体。ホームへ symlink される (編集は即反映、rebuild 不要) |
 | `nix/apps.nix` | `nix run .#switch` などの操作 |
+| `nix/tests/` | `default.nix` に登録した設定テストを `nix flake check` で実行 |
 | `templates/node/` | プロジェクト用 devShell の雛形 |
 
 ### シンボリックリンク
@@ -294,7 +295,7 @@ Review 2.0.0 の `code-review` は仕様と規約を並列に照合する別ス�
 
 ## 共通のセキュリティ監査
 
-Cloudflare の [security-audit-skill](https://github.com/cloudflare/security-audit-skill) を Claude Code・Codex・Pi 共通で使う。`nix/modules/home/options.nix` の `fetchFromGitHub` でコミットとハッシュを固定し、関連 Markdown・JSON schema・Node.js 検証スクリプトを含む `skills/security-audit/` 全体を Nix store から配布する。上流の MIT ライセンスは取得ソースの `LICENSE` に含まれる。`npx skills add` での別途インストールは不要。
+Cloudflare の [security-audit-skill](https://github.com/cloudflare/security-audit-skill) を Claude Code・Codex・Pi 共通で使う。`nix/modules/home/agent-skills.nix` の `fetchFromGitHub` でコミットとハッシュを固定し、関連 Markdown・JSON schema・Node.js 検証スクリプトを含む `skills/security-audit/` 全体を Nix store から配布する。上流の MIT ライセンスは取得ソースの `LICENSE` に含まれる。`npx skills add` での別途インストールは不要。
 
 マージ後、通常の dotfiles を更新して `nix run .#switch` を実行する（Pi は終了してから適用し、起動し直す）。Claude Code は `~/.claude/skills/security-audit`、Codex と Pi は `~/.agents/skills/security-audit` から読む。既存セッションに表示されなければ新しいセッションを開始する。
 
@@ -320,11 +321,11 @@ security-audit skill を使い、このコードベースを quick プロファ�
 - 完全監査の既定の出力先は `~/security-audit-skill/<repo-name>/run-<N>`。`REPORT.md`、`FINDINGS-DETAIL.md`、`NEEDS-VALIDATION.md`、`findings.json`、`coverage-ledger.json` などを生成する。`confirmed` のみ重大度を付け、未確定の `needs_validation` と反証済みの `rejected` を区別する。1回の監査を網羅性の保証としない。
 - **対象コードのビルド・テスト等は、外部ネットワーク禁止・許可リストのみの環境変数・対象とツールの読み取り専用化・専用 scratch 以外への書き込み禁止・資源/時間制限を OS が強制する場合だけ実行する。** この PR はサンドボックスを構築しない。エージェントへの文章指示や通常の CLI サンドボックスだけで要件を満たすとは限らない。不足時は実行せず、未検証の理由と安全な検証計画を残す。本番・共有環境・外部サービスを試験しない。
 
-上流を更新する際は `nix/modules/home/options.nix` の `rev` と `hash` を更新し、`nix build .#checks.aarch64-darwin.agent-skills --print-build-logs` で配置元と上流の validator テストを確認してから `switch` する。ローカルの `agents/skills/` は従来どおり編集即反映の symlink で、外部の `security-audit` は読み取り専用の固定ソースになる。
+上流を更新する際は `nix/modules/home/agent-skills.nix` の `rev` と `hash` を更新し、`nix build .#checks.aarch64-darwin.agent-skills --print-build-logs` で配置元と上流の validator テストを確認してから `switch` する。ローカルの `agents/skills/` は従来どおり編集即反映の symlink で、外部の `security-audit` は読み取り専用の固定ソースになる。
 
 ## 共通の DB 設計レビュー
 
-[hugoassisj/argus-db](https://github.com/hugoassisj/argus-db) を Claude Code・Codex・Pi 共通の `argus-db` skill として使う。`nix/modules/home/options.nix` の `fetchFromGitHub` でコミットとハッシュを固定し、`skills/review/` 全体（`FRAMEWORK.md`、`lenses/`、`references/`）と MIT ライセンスを Nix store に配置する。汎用の `review` という名前との衝突を避けるため、`SKILL.md` の `name` のみ `argus-db` に変更する。Claude 用プラグインの追加インストールは不要。
+[hugoassisj/argus-db](https://github.com/hugoassisj/argus-db) を Claude Code・Codex・Pi 共通の `argus-db` skill として使う。`nix/modules/home/agent-skills.nix` の `fetchFromGitHub` でコミットとハッシュを固定し、`skills/review/` 全体（`FRAMEWORK.md`、`lenses/`、`references/`）と MIT ライセンスを Nix store に配置する。汎用の `review` という名前との衝突を避けるため、`SKILL.md` の `name` のみ `argus-db` に変更する。Claude 用プラグインの追加インストールは不要。
 
 マージ後に dotfiles を更新して `nix run .#switch` を実行する（Pi は終了してから適用し、起動し直す）。Claude Code は `~/.claude/skills/argus-db`、Codex と Pi は `~/.agents/skills/argus-db` から読む。既存セッションで見つからなければ新しいセッションを開始する。
 

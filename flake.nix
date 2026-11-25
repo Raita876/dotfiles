@@ -33,6 +33,7 @@
     }:
     let
       system = "aarch64-darwin";
+      pkgs = nixpkgs.legacyPackages.${system};
     in
     {
       darwinModules.default = {
@@ -59,7 +60,7 @@
       };
 
       apps.${system} = import ./nix/apps.nix {
-        pkgs = nixpkgs.legacyPackages.${system};
+        inherit pkgs;
         inherit (nixpkgs) lib;
         darwinRebuild = nix-darwin.packages.${system}.darwin-rebuild;
         dir = self.darwinConfigurations.raita-mba.config.dotfiles.dir;
@@ -71,29 +72,12 @@
         description = "Node.js devShell (direnv 対応)";
       };
 
-      checks.${system} = {
-        claude-code = import ./nix/tests/claude-code.nix {
-          inherit (nixpkgs) lib;
-          pkgs = nixpkgs.legacyPackages.${system};
-          base = self.darwinConfigurations.raita-mba;
-        };
-        homebrew = import ./nix/tests/homebrew.nix {
-          inherit (nixpkgs) lib;
-          pkgs = nixpkgs.legacyPackages.${system};
-          base = self.darwinConfigurations.raita-mba;
-        };
-        hermes = import ./nix/tests/hermes.nix {
-          inherit (nixpkgs) lib;
-          pkgs = nixpkgs.legacyPackages.${system};
-          base = self.darwinConfigurations.raita-mba;
-        };
-        agent-skills = import ./nix/tests/agent-skills.nix {
-          inherit (nixpkgs) lib;
-          pkgs = nixpkgs.legacyPackages.${system};
-          base = self.darwinConfigurations.raita-mba;
-        };
+      checks.${system} = import ./nix/tests {
+        inherit pkgs;
+        inherit (nixpkgs) lib;
+        base = self.darwinConfigurations.raita-mba;
       };
 
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
+      formatter.${system} = pkgs.nixfmt-tree;
     };
 }

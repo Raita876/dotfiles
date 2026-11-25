@@ -1,6 +1,7 @@
 {
   imports = [
     ./options.nix
+    ./agent-skills.nix
     ./packages.nix
     ./git-hooks.nix
     ./programs/zsh.nix
